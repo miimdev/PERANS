@@ -214,12 +214,13 @@
       action: 'ping_rubika',
       api_base: apiBase || ''
     }, 15000),
-    detectRubikaChat: (token, botToken, apiBase) => edge('perans-rubika-notify', {
+    detectRubikaChat: (token, botToken, apiBase, forcePairing) => edge('perans-rubika-notify', {
       action: 'detect_chat',
       admin_token: token,
       bot_token: botToken || '',
-      api_base: apiBase || ''
-    }, 24000),
+      api_base: apiBase || '',
+      force_pairing: !!forcePairing
+    }, 30000),
     testRubikaBot: (token, botToken, chatId, apiBase) => edge('perans-rubika-notify', {
       action: 'test_send',
       admin_token: token,
