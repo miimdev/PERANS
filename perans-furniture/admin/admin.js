@@ -75,13 +75,13 @@
   const VIEWS = {
     dash: ['داشبورد تحلیلی', 'نمای زنده سفارش‌ها، موجودی انبار و پیام‌های مشتریان از دیتابیس Supabase'],
     products: ['محصولات و انبار', 'مدیریت کاتالوگ، قیمت‌گذاری تکی و گروهی، موجودی و تصاویر'],
-    orders: ['سفارش‌ها و فاکتور', 'بررسی سفارش‌های سایت، ارسال به بله، ثبت سفارش حضوری/تلفنی و چاپ فاکتور رسمی'],
+    orders: ['سفارش‌ها و فاکتور', 'بررسی سفارش‌های سایت، ارسال به روبیکا، ثبت سفارش حضوری/تلفنی و چاپ فاکتور رسمی'],
     messages: ['پیام‌ها و مشاوره چیدمان', 'درخواست‌های مشاوره، رزرو بازدید و اعضای خبرنامه'],
     cats: ['دسته‌بندی‌ها', 'ساختار و ترتیب نمایش دسته‌های فروشگاه'],
     content: ['محتوا و ویترین سایت', 'ویرایش زنده تیترهای هیرو، کارت‌های معرفی، نوار اطلاعیه و برند'],
     commerce: ['تخفیف‌ها و ارسال', 'هزینه ارسال، سقف ارسال رایگان و مدیریت کدهای تخفیف'],
     media: ['کتابخانه رسانه ابری', 'آپلود با فشرده‌سازی خودکار WebP و مدیریت تصاویر محصولات در Supabase'],
-    bale: ['ربات پیام‌رسان بله', 'ارسال خودکار عکس مبلمان، مشخصات سفارش و اطلاعات مشتری به بله مالک'],
+    rubika: ['ربات پیام‌رسان روبیکا', 'ارسال خودکار عکس مبلمان، مشخصات کامل سفارش و اطلاعات مشتری به روبیکای مالک'],
     settings: ['تنظیمات و امنیت', 'شبکه‌های اجتماعی، وضعیت دیتابیس و تغییر نام کاربری یا رمز عبور'],
     audit: ['گزارش فعالیت و پشتیبان', 'لاگ عملیات مدیران در دیتابیس و پشتیبان‌گیری / بازگردانی ابری']
   };
@@ -114,12 +114,15 @@
       commerce: { shipping: 1200000, threshold: 20000000, coupons: {} }
     },
     bot_settings: {
-      bale_enabled: true,
+      rubika_enabled: true,
       has_token: false,
       masked_token: '',
-      bale_chat_id: '',
-      bale_bot_username: '',
-      bale_bot_name: '',
+      rubika_chat_id: '',
+      rubika_bot_username: '',
+      rubika_bot_name: '',
+      rubika_bot_id: '',
+      rubika_share_url: '',
+      rubika_api_base: 'https://botapi.rubika.ir/v3',
       notify_on_order: true,
       notify_on_message: true,
       site_base_url: 'https://miimdev.github.io/PERANS',
@@ -311,9 +314,9 @@
     $('#navOrders').classList.toggle('nav__badge--alert', newOrders > 0);
     $('#navMessages').textContent = num(unreadMsgs);
     $('#navMedia').textContent = num(STATE.media.length + BUILTIN_IMGS.length);
-    const nb = $('#navBale');
+    const nb = $('#navRubika');
     if (nb) {
-      const ready = !!(STATE.bot_settings && STATE.bot_settings.bale_enabled && STATE.bot_settings.has_token && STATE.bot_settings.bale_chat_id);
+      const ready = !!(STATE.bot_settings && STATE.bot_settings.rubika_enabled && STATE.bot_settings.has_token && STATE.bot_settings.rubika_chat_id);
       nb.textContent = ready ? 'فعال' : 'تنظیم';
       nb.className = 'nav__badge ' + (ready ? '' : 'nav__badge--gold');
     }
@@ -342,7 +345,7 @@
       content: renderContent,
       commerce: renderCommerce,
       media: renderMedia,
-      bale: renderBale,
+      rubika: renderRubika,
       settings: renderSettings,
       audit: renderAudit
     };
@@ -403,7 +406,7 @@
         '<div class="hero-strip__acts">' +
           '<button class="btn btn--gold btn--sm" data-act="new-product">' + ICO('plus') + ' محصول جدید</button>' +
           '<button class="btn btn--dark btn--sm" data-act="new-order-modal">' + ICO('cart') + ' ثبت سفارش حضوری/تلفنی</button>' +
-          '<button class="btn btn--ghost btn--sm" data-goto="bale">' + ICO('send') + ' ' + ((STATE.bot_settings && STATE.bot_settings.has_token && STATE.bot_settings.bale_chat_id) ? 'ربات بله (فعال)' : 'اتصال ربات بله') + '</button>' +
+          '<button class="btn btn--ghost btn--sm" data-goto="rubika">' + ICO('send') + ' ' + ((STATE.bot_settings && STATE.bot_settings.has_token && STATE.bot_settings.rubika_chat_id) ? 'ربات روبیکا (فعال)' : 'اتصال ربات روبیکا') + '</button>' +
           '<button class="btn btn--ghost btn--sm" data-act="bulk-modal">' + ICO('percent') + ' تغییر گروهی قیمت‌ها</button>' +
         '</div>' +
       '</div>' +
@@ -849,15 +852,15 @@
   /* ------------------------------------------------------------------ 3. Orders & Invoice */
   function renderOrdersTableHTML(list, compact) {
     return '<div class="tablewrap"><table><thead><tr>' +
-      '<th>کد پیگیری</th><th>مشتری</th><th>اقلام</th><th>مبلغ سفارش</th><th>نحوه هماهنگی</th>' + (compact ? '' : '<th>بله</th>') + '<th>تاریخ</th><th>وضعیت</th>' + (compact ? '' : '<th>عملیات</th>') +
+      '<th>کد پیگیری</th><th>مشتری</th><th>اقلام</th><th>مبلغ سفارش</th><th>نحوه هماهنگی</th>' + (compact ? '' : '<th>روبیکا</th>') + '<th>تاریخ</th><th>وضعیت</th>' + (compact ? '' : '<th>عملیات</th>') +
     '</tr></thead><tbody>' +
       list.map((o) => {
         const st = ORDER_STATUS[o.status] || ORDER_STATUS.new;
         const itemsCount = Array.isArray(o.items) ? o.items.reduce((s, i) => s + (+i.qty || 1), 0) : 0;
-        const bBadge = o.bale_notified_at
-          ? '<span class="tag g" title="ارسال شده به پیام‌رسان بله">ارسال شد</span>'
-          : o.bale_notify_status === 'failed'
-            ? '<span class="tag r" title="' + esc(o.bale_notify_error || '') + '">خطا</span>'
+        const rBadge = o.rubika_notified_at
+          ? '<span class="tag g" title="ارسال شده به پیام‌رسان روبیکا">ارسال شد</span>'
+          : o.rubika_notify_status === 'failed'
+            ? '<span class="tag r" title="' + esc(o.rubika_notify_error || '') + '">خطا</span>'
             : '<span class="tag">ارسال نشده</span>';
         return '<tr>' +
           '<td><b dir="ltr">' + esc(o.order_code) + '</b></td>' +
@@ -865,7 +868,7 @@
           '<td>' + num(itemsCount) + ' قلم</td>' +
           '<td><b>' + money(o.total || 0) + '</b></td>' +
           '<td><span class="tag">' + esc(PAY_MAP[o.payment_method] || o.payment_method) + '</span></td>' +
-          (compact ? '' : '<td>' + bBadge + '</td>') +
+          (compact ? '' : '<td>' + rBadge + '</td>') +
           '<td class="muted" style="font-size:11.5px">' + esc(faDate(o.created_at, true)) + '</td>' +
           '<td>' + (compact
             ? '<span class="tag ' + st.cls + '">' + esc(st.label) + '</span>'
@@ -876,7 +879,7 @@
           (compact ? '' :
             '<td><div class="rowact">' +
               '<button class="mini" data-act="view-order" data-id="' + esc(o.id) + '" title="جزئیات و یادداشت">' + ICO('eye') + '</button>' +
-              '<button class="mini" data-act="resend-bale" data-id="' + esc(o.id) + '" title="ارسال عکس و مشخصات به بله">' + ICO('send') + '</button>' +
+              '<button class="mini" data-act="resend-rubika" data-id="' + esc(o.id) + '" title="ارسال عکس و مشخصات کامل سفارش به روبیکا">' + ICO('send') + '</button>' +
               '<button class="mini" data-act="print-order" data-id="' + esc(o.id) + '" title="چاپ فاکتور رسمی">' + ICO('print') + '</button>' +
               '<button class="mini del" data-act="del-order" data-id="' + esc(o.id) + '" title="حذف سفارش">' + ICO('trash') + '</button>' +
             '</div></td>') +
@@ -938,8 +941,8 @@
           fieldHTML('نشانی تحویل', '<input value="' + esc(o.address || '—') + '" disabled>', 'full') +
           (o.customer_note ? fieldHTML('توضیحات مشتری هنگام ثبت سفارش', '<input value="' + esc(o.customer_note) + '" disabled>', 'full') : '') +
           fieldHTML('وضعیت سفارش', '<select id="omStatus">' + Object.entries(ORDER_STATUS).map(([k, m]) => '<option value="' + k + '"' + (o.status === k ? ' selected' : '') + '>' + esc(m.label) + '</option>').join('') + '</select>') +
-          fieldHTML('وضعیت ارسال به بله', '<input value="' + esc(o.bale_notified_at ? ('ارسال شده در ' + faDate(o.bale_notified_at, true)) : (o.bale_notify_error || 'هنوز ارسال نشده')) + '" disabled>') +
-          fieldHTML('یادداشت داخلی مدیر (محرمانه)', '<textarea id="omAdminNote" placeholder="مثلاً با مشتری هماهنگ شد؛ ارسال شنبه صبح با وانت شعبه…">' + esc(o.admin_note || '') + '</textarea>', 'full') +
+          fieldHTML('وضعیت ارسال به روبیکا', '<input value="' + esc(o.rubika_notified_at ? ('ارسال شده در ' + faDate(o.rubika_notified_at, true)) : (o.rubika_notify_error || 'هنوز ارسال نشده')) + '" disabled>') +
+          fieldHTML('یادداشت کارشناس نمایشگاه (قابل مشاهده در پیگیری سفارش مشتری)', '<textarea id="omAdminNote" placeholder="مثلاً با مشتری هماهنگ شد؛ رنگ پارچه سبز زمردی تأیید و ارسال برای شنبه صبح رزرو گردید…">' + esc(o.admin_note || '') + '</textarea>', 'full') +
         '</div>' +
         '<div class="hr"></div>' +
         '<b style="font-size:13px;display:block;margin-bottom:8px">اقلام سفارش (همراه تصویر و رنگ انتخابی)</b>' +
@@ -966,7 +969,7 @@
         '</div>' +
       '</div>' +
       '<div class="modal__foot">' +
-        '<button class="btn btn--dark" data-act="resend-bale" data-id="' + esc(o.id) + '">' + ICO('send') + ' ارسال عکس و مشخصات به بله</button>' +
+        '<button class="btn btn--dark" data-act="resend-rubika" data-id="' + esc(o.id) + '">' + ICO('send') + ' ارسال عکس و مشخصات به روبیکا</button>' +
         '<button class="btn btn--ghost" data-act="print-order" data-id="' + esc(o.id) + '">' + ICO('print') + ' چاپ فاکتور رسمی</button>' +
         '<button class="btn btn--gold" id="omSaveBtn">' + ICO('save') + ' ذخیره وضعیت و یادداشت</button>' +
       '</div>'
@@ -1384,76 +1387,104 @@
     }
   }
 
-  /* ------------------------------------------------------------------ 8.5. Bale Messenger Bot */
-  function renderBale() {
+  /* ------------------------------------------------------------------ 8.5. Rubika Messenger Bot (Bot API v3) */
+  function renderRubika() {
     const BS = STATE.bot_settings || {};
-    const isReady = !!(BS.bale_enabled && BS.has_token && BS.bale_chat_id);
+    const isReady = !!(BS.rubika_enabled && BS.has_token && BS.rubika_chat_id);
 
-    $('#view-bale').innerHTML =
+    $('#view-rubika').innerHTML =
       '<div class="sectiongrid">' +
         '<div class="hero-strip">' +
           '<div>' +
-            '<h3>اتصال زنده به ربات پیام‌رسان «بله» (اعلان آنی سفارش با عکس)</h3>' +
-            '<p>به محض ثبت سفارش توسط مشتری، <b>تصاویر مبلمان انتخابی + مشخصات کامل مدل و رنگ + اطلاعات کامل ثبت‌کننده و آدرس</b> به پیام‌رسان بله شما ارسال می‌شود.</p>' +
+            '<h3>اتصال زنده به ربات پیام‌رسان «روبیکا» (ارسال خودکار عکس + پرونده کامل سفارش)</h3>' +
+            '<p>به محض ثبت سفارش توسط مشتری و دریافت کد پیگیری در سایت، <b>تصاویر مبلمان انتخابی + مشخصات کامل مدل، رنگ و ابعاد + اطلاعات ثبت‌کننده و آدرس</b> مستقیماً به پیام‌رسان روبیکای مالک ارسال می‌شود.</p>' +
           '</div>' +
-          '<div class="hero-strip__acts">' +
+          '<div class="hero-strip__acts" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' +
+            (BS.rubika_share_url ? '<a class="btn btn--ghost btn--sm" href="' + esc(BS.rubika_share_url) + '" target="_blank" rel="noopener">باز کردن ربات در روبیکا</a>' : '') +
             '<span class="tag ' + (isReady ? 'g' : 'a') + '" style="padding:7px 14px;font-size:12px">' +
-              (isReady ? ('متصل و فعال' + (BS.bale_bot_username ? ' · @' + esc(BS.bale_bot_username) : '')) : 'در انتظار تکمیل توکن / آیدی چت') +
+              (isReady
+                ? ('متصل و فعال' + (BS.rubika_bot_username ? ' · @' + esc(BS.rubika_bot_username) : (BS.rubika_bot_name ? ' · ' + esc(BS.rubika_bot_name) : '')))
+                : 'در انتظار تکمیل توکن / شناسه چت مالک') +
             '</span>' +
           '</div>' +
         '</div>' +
 
         '<div class="card">' +
-          '<div class="card__head"><div><h3>راهنمای ۳ مرحله‌ای راه‌اندازی سریع در بله</h3><p>کمتر از ۱ دقیقه زمان می‌برد و بدون نیاز به دانش فنی است</p></div></div>' +
+          '<div class="card__head">' +
+            '<div><h3>راهنمای ۳ مرحله‌ای راه‌اندازی ربات در روبیکا (Rubika Bot API v3)</h3><p>کمتر از ۱ دقیقه زمان می‌برد و بدون نیاز به هیچ دانش فنی است</p></div>' +
+            '<button type="button" class="btn btn--ghost btn--sm" data-act="rubika-ping" id="rubikaPingBtn">بررسی ارتباط سرور با روبیکا</button>' +
+          '</div>' +
           '<div class="card__body" style="display:grid;gap:10px;font-size:12.5px">' +
-            '<div style="padding:11px 14px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line-soft)"><b>گام ۱:</b> در پیام‌رسان بله وارد ربات رسمی <b dir="ltr">@BotFather</b> شوید، با دستور <code dir="ltr">/newbot</code> یک ربات بسازید و <b>توکن (Token)</b> دریافتی را در کادر زیر قرار دهید.</div>' +
-            '<div style="padding:11px 14px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line-soft)"><b>گام ۲:</b> وارد ربات تازه ساخته‌شده خود در بله شوید و یک بار دکمه <b>شروع (<code dir="ltr">/start</code>)</b> را بزنید یا یک پیام دلخواه بفرستید.</div>' +
-            '<div style="padding:11px 14px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line-soft)"><b>گام ۳:</b> روی دکمه <b>«شناسایی خودکار آیدی چت من»</b> در پایین کلیک کنید تا شماره چت شما خودکار پر شود؛ سپس دکمه <b>«ذخیره و ارسال عکس تست به بله»</b> را بزنید!</div>' +
+            '<div style="padding:11px 14px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line-soft)"><b>گام ۱ (ساخت ربات در روبیکا):</b> در اپلیکیشن <b>روبیکا</b> آیدی رسمی <b dir="ltr">@BotFather</b> را جستجو کنید، دستور <code dir="ltr">/newbot</code> را ارسال نمایید، نام ربات (مثلاً «سفارشات مبل پرنس») و یک نام کاربری انگلیسی انتخاب کنید و <b>توکن (Token)</b> دریافتی را در کادر زیر قرار دهید.</div>' +
+            '<div style="padding:11px 14px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line-soft)"><b>گام ۲ (شروع گفتگو با ربات):</b> با حساب روبیکای مالک نمایشگاه وارد ربات تازه ساخته‌شده خود شوید و یک بار دکمه <b>شروع (<code dir="ltr">/start</code>)</b> را بزنید یا یک پیام کوتاه (مثل «سلام») بفرستید.</div>' +
+            '<div style="padding:11px 14px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line-soft)"><b>گام ۳ (شناسایی و تست زنده):</b> روی دکمه <b>«شناسایی خودکار شناسه چت مالک از روبیکا»</b> کلیک کنید تا شناسه چت شما (مانند <code dir="ltr">u0...</code> یا <code dir="ltr">b0...</code>) خودکار درج شود؛ سپس دکمه طلایی <b>«ذخیره و ارسال عکس + سفارش آزمایشی به روبیکا»</b> را بزنید!</div>' +
           '</div>' +
         '</div>' +
 
         '<div class="card">' +
-          '<div class="card__head"><div><h3>پیکربندی امن ربات در سرور ابری</h3><p>توکن ربات در جدول محافظت‌شده دیتابیس نگهداری شده و هرگز در کدهای عمومی سایت لو نمی‌رود</p></div></div>' +
+          '<div class="card__head"><div><h3>پیکربندی امن ربات روبیکا در سرور ابری</h3><p>توکن ربات در جدول محافظت‌شده دیتابیس نگهداری شده و هرگز در کدهای عمومی سایت فاش نمی‌شود</p></div></div>' +
           '<div class="card__body"><div class="formgrid">' +
             '<div class="f full">' +
               '<div style="display:flex;gap:22px;flex-wrap:wrap;padding:12px 16px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line-soft)">' +
-                '<label style="display:flex;align-items:center;gap:10px;cursor:pointer"><span class="switch"><input type="checkbox" id="baleEnabled"' + (BS.bale_enabled !== false ? ' checked' : '') + '><i></i></span><b style="font-size:12.5px">فعال بودن ربات بله</b></label>' +
-                '<label style="display:flex;align-items:center;gap:10px;cursor:pointer"><span class="switch"><input type="checkbox" id="baleOnOrder"' + (BS.notify_on_order !== false ? ' checked' : '') + '><i></i></span><b style="font-size:12.5px">ارسال خودکار عکس و مشخصات هر سفارش جدید</b></label>' +
-                '<label style="display:flex;align-items:center;gap:10px;cursor:pointer"><span class="switch"><input type="checkbox" id="baleOnMsg"' + (BS.notify_on_message !== false ? ' checked' : '') + '><i></i></span><b style="font-size:12.5px">ارسال اعلان فرم مشاوره چیدمان</b></label>' +
+                '<label style="display:flex;align-items:center;gap:10px;cursor:pointer"><span class="switch"><input type="checkbox" id="rubikaEnabled"' + (BS.rubika_enabled !== false ? ' checked' : '') + '><i></i></span><b style="font-size:12.5px">فعال بودن ربات روبیکا</b></label>' +
+                '<label style="display:flex;align-items:center;gap:10px;cursor:pointer"><span class="switch"><input type="checkbox" id="rubikaOnOrder"' + (BS.notify_on_order !== false ? ' checked' : '') + '><i></i></span><b style="font-size:12.5px">ارسال خودکار عکس مبلمان + مشخصات سفارش + مشخصات ثبت‌کننده</b></label>' +
+                '<label style="display:flex;align-items:center;gap:10px;cursor:pointer"><span class="switch"><input type="checkbox" id="rubikaOnMsg"' + (BS.notify_on_message !== false ? ' checked' : '') + '><i></i></span><b style="font-size:12.5px">ارسال اعلان فرم مشاوره چیدمان</b></label>' +
               '</div>' +
             '</div>' +
 
             fieldHTML(
-              'توکن ربات بله (Bot Token از @BotFather) *',
-              '<input id="baleToken" dir="ltr" placeholder="' + (BS.has_token ? ('ذخیره شده: ' + esc(BS.masked_token) + ' — برای تغییر، توکن جدید وارد کنید') : 'مثلاً 1234567890:ABCDEF...') + '">' +
-              (BS.has_token ? '<small style="color:var(--green)">✓ توکن در سرور ذخیره شده است (' + esc(BS.masked_token) + '). اگر قصد تغییر ندارید خالی بگذارید.</small>' : '<small>توکن دریافتی از @BotFather در بله را دقیقاً اینجا جای‌گذاری کنید.</small>'),
+              'توکن ربات روبیکا (Bot Token دریافتی از @BotFather در روبیکا) *',
+              '<input id="rubikaToken" dir="ltr" autocomplete="off" placeholder="' + (BS.has_token ? ('ذخیره شده: ' + esc(BS.masked_token) + ' — برای تغییر، توکن جدید وارد کنید') : 'توکن ۶۴ کاراکتری دریافتی از @BotFather روبیکا را اینجا قرار دهید…') + '">' +
+              (BS.has_token
+                ? '<small style="color:var(--green)">✓ توکن ربات در سرور ذخیره شده است (' + esc(BS.masked_token) + '). اگر قصد تغییر توکن را ندارید این کادر را خالی بگذارید.</small>'
+                : '<small>توکن دریافتی از @BotFather در پیام‌رسان روبیکا را دقیقاً بدون فاصله اضافی اینجا جای‌گذاری کنید.</small>'),
               'full'
             ) +
 
             '<div class="f full">' +
-              '<label><span>شناسه عددی چت یا کانال مالک (Chat ID) *</span></label>' +
+              '<label><span>شناسه چت یا گروه مالک در روبیکا (Chat ID) *</span></label>' +
               '<div style="display:flex;gap:10px;flex-wrap:wrap">' +
-                '<input id="baleChatId" dir="ltr" style="flex:1;min-width:200px" value="' + esc(BS.bale_chat_id || '') + '" placeholder="مثلاً 148291034">' +
-                '<button type="button" class="btn btn--dark" data-act="bale-detect-chat" id="baleDetectBtn">' + ICO('search') + ' شناسایی خودکار آیدی چت من از بله</button>' +
+                '<input id="rubikaChatId" dir="ltr" style="flex:1;min-width:220px" value="' + esc(BS.rubika_chat_id || '') + '" placeholder="مثلاً u0ABC123... یا b0XYZ... (با دکمه روبرو خودکار شناسایی کنید)">' +
+                '<button type="button" class="btn btn--dark" data-act="rubika-detect-chat" id="rubikaDetectBtn">' + ICO('search') + ' شناسایی خودکار شناسه چت مالک از روبیکا</button>' +
               '</div>' +
-              '<small>اگر آیدی عددی چت خود را نمی‌دانید، کافی است در بله یک پیام به رباتتان بدهید و دکمه بالا را بزنید.</small>' +
-              '<div id="baleDetectedChats" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"></div>' +
+              '<small>شناسه چت روبیکا ترکیبی از حروف و اعداد است (مانند <code dir="ltr">u0...</code> یا <code dir="ltr">b0...</code>). کافی است یک بار در روبیکا به ربات پیام دهید و دکمه بالا را بزنید.</small>' +
+              '<div id="rubikaDetectedChats" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"></div>' +
             '</div>' +
 
-            fieldHTML('آدرس عمومی سایت (جهت بارگذاری تصاویر نمایشگاه)', '<input id="baleSiteUrl" dir="ltr" value="' + esc(BS.site_base_url || 'https://miimdev.github.io/PERANS') + '">', 'full') +
+            fieldHTML('آدرس عمومی وب‌سایت (برای دریافت تصاویر نمایشگاه)', '<input id="rubikaSiteUrl" dir="ltr" value="' + esc(BS.site_base_url || 'https://miimdev.github.io/PERANS') + '">') +
+            fieldHTML('آدرس سرور API روبیکا (پیش‌فرض رسمی v3)', '<input id="rubikaApiBase" dir="ltr" value="' + esc(BS.rubika_api_base || 'https://botapi.rubika.ir/v3') + '" placeholder="https://botapi.rubika.ir/v3">') +
 
             (BS.last_test_at || BS.last_error
               ? '<div class="f full"><div style="padding:11px 14px;border-radius:12px;background:var(--surface-2);font-size:12px">' +
-                  (BS.last_test_at ? '<div style="color:var(--green)">✓ آخرین تست موفق اتصال: ' + esc(faDate(BS.last_test_at, true)) + '</div>' : '') +
+                  (BS.last_test_at ? '<div style="color:var(--green)">✓ آخرین تست موفق ارسال به روبیکا: ' + esc(faDate(BS.last_test_at, true)) + '</div>' : '') +
                   (BS.last_error ? '<div style="color:var(--red);margin-top:4px">⚠ آخرین خطای ثبت‌شده: ' + esc(BS.last_error) + '</div>' : '') +
                 '</div></div>'
               : '') +
           '</div>' +
 
           '<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:18px">' +
-            '<button class="btn btn--gold" data-act="bale-test" id="baleTestBtn">' + ICO('send') + ' ذخیره و ارسال عکس + سفارش تست به بله</button>' +
-            '<button class="btn btn--ghost" data-act="bale-save" id="baleSaveBtn">' + ICO('save') + ' فقط ذخیره تنظیمات</button>' +
+            '<button class="btn btn--gold" data-act="rubika-test" id="rubikaTestBtn">' + ICO('send') + ' ذخیره و ارسال عکس + سفارش آزمایشی به روبیکا</button>' +
+            '<button class="btn btn--ghost" data-act="rubika-save" id="rubikaSaveBtn">' + ICO('save') + ' فقط ذخیره تنظیمات</button>' +
           '</div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="card">' +
+          '<div class="card__head"><div><h3>پیش‌نمایش ساختار پیام ارسالی به روبیکای مالک</h3><p>در سفارش‌های تک‌قلمی تصویر و متن یکجا و در سفارش‌های چندقلمی پرونده جامع + تصویر جداگانه هر مبل ارسال می‌شود</p></div></div>' +
+          '<div class="card__body">' +
+            '<div style="max-width:540px;padding:16px;border-radius:16px;background:var(--surface-2);border:1px solid var(--line-soft);font-size:12.3px;line-height:1.9">' +
+              '<div style="display:flex;align-items:center;gap:12px;padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid var(--line-soft)">' +
+                '<img src="../images/p1.jpg" alt="" style="width:68px;height:68px;border-radius:12px;object-fit:cover;border:1px solid var(--line-soft)">' +
+                '<div>' +
+                  '<b style="display:block;color:var(--gold)">🛋 سفارش جدید در وب‌سایت «مبل پرنس» ثبت شد</b>' +
+                  '<span class="muted" style="font-size:11.5px">تصویر اصلی هر مدل مبلمان با کیفیت کامل به روبیکا بارگذاری می‌شود</span>' +
+                '</div>' +
+              '</div>' +
+              '<div>🔖 <b>کد پیگیری مشتری:</b> <span dir="ltr">PERANS-482910</span></div>' +
+              '<div>👤 <b>مشخصات ثبت‌کننده:</b> نام و نام خانوادگی · شماره موبایل · شهر · کد پستی · نشانی کامل · توضیحات مشتری</div>' +
+              '<div>📦 <b>مشخصات کامل سفارش:</b> نام مدل · دسته‌بندی · تعداد · رنگ انتخابی · ابعاد و جنس پارچه/بدنه · قیمت واحد و جمع کل</div>' +
+              '<div>🤝 <b>وضعیت پرداخت:</b> ثبت سفارش بدون پرداخت آنلاین — در انتظار تماس کارشناس فروش</div>' +
+            '</div>' +
           '</div>' +
         '</div>' +
       '</div>';
@@ -1620,15 +1651,15 @@
       case 'new-order-modal': openNewOrderModal(); break;
       case 'view-order': openOrderInspectModal(id); break;
       case 'print-order': printOrderInvoice(id); break;
-      case 'resend-bale': {
+      case 'resend-rubika': {
         btn.disabled = true;
-        toast('در حال ارسال عکس و مشخصات سفارش به پیام‌رسان بله…');
+        toast('در حال بارگذاری تصویر و ارسال مشخصات کامل سفارش به روبیکا…');
         try {
-          await DB.resendOrderToBale(SESSION_TOKEN, id);
+          await DB.resendOrderToRubika(SESSION_TOKEN, id);
           await refreshFromCloud(true);
-          toast('تصاویر و مشخصات سفارش با موفقیت به بله ارسال شد');
+          toast('تصاویر مبلمان و پرونده کامل سفارش با موفقیت به روبیکا ارسال شد');
         } catch (err) {
-          toast(err.message || 'خطا در ارسال به بله', 'err');
+          toast(err.message || 'خطا در ارسال به روبیکا', 'err');
         } finally {
           btn.disabled = false;
         }
@@ -1801,73 +1832,99 @@
         }
         break;
 
-      case 'bale-pick-chat': {
-        const inp = $('#baleChatId');
-        if (inp) inp.value = btn.dataset.chatId || '';
-        toast('شناسه چت ' + (btn.dataset.chatId || '') + ' انتخاب شد');
-        break;
-      }
-
-      case 'bale-detect-chat': {
-        const tok = ($('#baleToken') && $('#baleToken').value.trim()) || '';
+      case 'rubika-ping': {
+        const apiBase = ($('#rubikaApiBase') && $('#rubikaApiBase').value.trim()) || 'https://botapi.rubika.ir/v3';
         btn.disabled = true;
-        btn.textContent = 'در حال استعلام از سرور بله…';
+        const origTxt = btn.textContent;
+        btn.textContent = 'در حال بررسی…';
         try {
-          const res = await DB.detectBaleChat(SESSION_TOKEN, tok);
-          const box = $('#baleDetectedChats');
-          if (res.chats && res.chats.length) {
-            if ($('#baleChatId') && !$('#baleChatId').value.trim()) {
-              $('#baleChatId').value = res.chats[0].chat_id;
-            }
-            if (box) {
-              box.innerHTML = res.chats.map((ch) =>
-                '<button type="button" class="btn btn--ghost btn--sm" data-act="bale-pick-chat" data-chat-id="' + esc(ch.chat_id) + '">' +
-                  esc(ch.title) + ' (' + esc(ch.chat_id) + ')' +
-                '</button>'
-              ).join('');
-            }
-            toast('ربات @' + ((res.bot && res.bot.username) || '') + ' تأیید و چت شما شناسایی شد!');
+          const res = await DB.pingRubika(apiBase);
+          if (res && res.reachable) {
+            toast('ارتباط سرور ابری با سرور API روبیکا برقرار و آماده است (HTTP ' + (res.http_status || 200) + ')');
           } else {
-            toast('ربات تأیید شد، اما هنوز پیامی به ربات نداده‌اید. در بله به ربات خود /start بزنید و دوباره تلاش کنید.', 'err');
+            toast('عدم پاسخ از آدرس سرور روبیکا: ' + ((res && res.error) || 'خطای شبکه'), 'err');
           }
         } catch (err) {
-          toast(err.message || 'خطا در اتصال به ربات بله', 'err');
+          toast(err.message || 'خطا در بررسی اتصال روبیکا', 'err');
         } finally {
           btn.disabled = false;
-          btn.innerHTML = ICO('search') + ' شناسایی خودکار آیدی چت من از بله';
+          btn.textContent = origTxt;
         }
         break;
       }
 
-      case 'bale-save':
-      case 'bale-test': {
-        const tok = ($('#baleToken') && $('#baleToken').value.trim()) || '';
-        const chatId = toEn(($('#baleChatId') && $('#baleChatId').value.trim()) || '');
-        const siteUrl = ($('#baleSiteUrl') && $('#baleSiteUrl').value.trim()) || 'https://miimdev.github.io/PERANS';
+      case 'rubika-pick-chat': {
+        const inp = $('#rubikaChatId');
+        if (inp) inp.value = btn.dataset.chatId || '';
+        toast('شناسه چت روبیکا (' + (btn.dataset.chatId || '') + ') انتخاب شد');
+        break;
+      }
+
+      case 'rubika-detect-chat': {
+        const tok = ($('#rubikaToken') && $('#rubikaToken').value.trim()) || '';
+        const apiBase = ($('#rubikaApiBase') && $('#rubikaApiBase').value.trim()) || 'https://botapi.rubika.ir/v3';
+        btn.disabled = true;
+        btn.textContent = 'در حال استعلام از سرور روبیکا…';
+        try {
+          const res = await DB.detectRubikaChat(SESSION_TOKEN, tok, apiBase);
+          const box = $('#rubikaDetectedChats');
+          if (res.chats && res.chats.length) {
+            if ($('#rubikaChatId') && !$('#rubikaChatId').value.trim()) {
+              $('#rubikaChatId').value = res.chats[0].chat_id;
+            }
+            if (box) {
+              box.innerHTML = res.chats.map((ch) =>
+                '<button type="button" class="btn btn--ghost btn--sm" data-act="rubika-pick-chat" data-chat-id="' + esc(ch.chat_id) + '">' +
+                  esc(ch.title || 'کاربر روبیکا') + ' · ' + esc(ch.type || 'چت') + ' (<span dir="ltr">' + esc(ch.chat_id) + '</span>)' +
+                '</button>'
+              ).join('');
+            }
+            await refreshFromCloud(true);
+            toast('ربات «' + ((res.bot && (res.bot.name || res.bot.username)) || 'روبیکا') + '» تأیید و شناسه چت مالک شناسایی شد!');
+          } else {
+            await refreshFromCloud(true);
+            toast('توکن ربات تأیید شد، اما هنوز پیامی در روبیکا به ربات ارسال نشده است. وارد ربات شوید و /start بزنید، سپس دوباره کلیک کنید.', 'err');
+          }
+        } catch (err) {
+          toast(err.message || 'خطا در اتصال به ربات روبیکا', 'err');
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = ICO('search') + ' شناسایی خودکار شناسه چت مالک از روبیکا';
+        }
+        break;
+      }
+
+      case 'rubika-save':
+      case 'rubika-test': {
+        const tok = ($('#rubikaToken') && $('#rubikaToken').value.trim()) || '';
+        const chatId = toEn(($('#rubikaChatId') && $('#rubikaChatId').value.trim()) || '');
+        const siteUrl = ($('#rubikaSiteUrl') && $('#rubikaSiteUrl').value.trim()) || 'https://miimdev.github.io/PERANS';
+        const apiBase = ($('#rubikaApiBase') && $('#rubikaApiBase').value.trim()) || 'https://botapi.rubika.ir/v3';
         const payload = {
-          bale_enabled: !!(($('#baleEnabled') && $('#baleEnabled').checked)),
-          notify_on_order: !!(($('#baleOnOrder') && $('#baleOnOrder').checked)),
-          notify_on_message: !!(($('#baleOnMsg') && $('#baleOnMsg').checked)),
-          bale_chat_id: chatId,
-          site_base_url: siteUrl
+          rubika_enabled: !!(($('#rubikaEnabled') && $('#rubikaEnabled').checked)),
+          notify_on_order: !!(($('#rubikaOnOrder') && $('#rubikaOnOrder').checked)),
+          notify_on_message: !!(($('#rubikaOnMsg') && $('#rubikaOnMsg').checked)),
+          rubika_chat_id: chatId,
+          site_base_url: siteUrl,
+          rubika_api_base: apiBase
         };
-        if (tok) payload.bale_bot_token = tok;
+        if (tok) payload.rubika_bot_token = tok;
 
         btn.disabled = true;
         const origHtml = btn.innerHTML;
-        btn.textContent = act === 'bale-test' ? 'در حال ذخیره و ارسال عکس تست به بله…' : 'در حال ذخیره…';
+        btn.textContent = act === 'rubika-test' ? 'در حال بارگذاری عکس و ارسال تست به روبیکا…' : 'در حال ذخیره…';
         try {
           await DB.saveBotSettings(SESSION_TOKEN, payload);
-          if (act === 'bale-test') {
-            await DB.testBaleBot(SESSION_TOKEN, tok, chatId);
+          if (act === 'rubika-test') {
+            await DB.testRubikaBot(SESSION_TOKEN, tok, chatId, apiBase);
             await refreshFromCloud(true);
-            toast('عالی! تصویر مبل و نمونه سفارش با موفقیت به پیام‌رسان بله شما ارسال شد!');
+            toast('عالی! تصویر مبل و نمونه پرونده سفارش با موفقیت به روبیکای شما ارسال شد!');
           } else {
             await refreshFromCloud(true);
-            toast('تنظیمات ربات بله در سرور ذخیره شد');
+            toast('تنظیمات ربات روبیکا در سرور ابری ذخیره شد');
           }
         } catch (err) {
-          toast(err.message || 'خطا در ذخیره یا تست ربات بله', 'err');
+          toast(err.message || 'خطا در ذخیره یا تست ربات روبیکا', 'err');
         } finally {
           btn.disabled = false;
           btn.innerHTML = origHtml;

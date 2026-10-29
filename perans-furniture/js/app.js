@@ -993,6 +993,7 @@
         }
         coData.lastOrderCode = orderCode;
         coData.lastTotal = total;
+        coData.lastItems = orderItems;
         pushOrder({
           id: orderCode,
           date: new Date().toISOString(),
@@ -1012,21 +1013,37 @@
     } else {
       const total = coData.lastTotal != null ? coData.lastTotal : totals().total;
       const rawCode = coData.lastOrderCode || ('PERANS-' + Math.floor(100000 + Math.random() * 899999));
+      const summaryItems = Array.isArray(coData.lastItems) ? coData.lastItems : [];
+      const receiptItemsHtml = summaryItems.length
+        ? '<div style="margin:14px auto 4px;max-width:440px;text-align:right;padding:10px 12px;border-radius:12px;background:rgba(18,63,52,.05);border:1px solid rgba(18,63,52,.14)">' +
+            summaryItems.map((it) =>
+              '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 0;font-size:12px">' +
+                '<div style="display:flex;align-items:center;gap:8px;min-width:0">' +
+                  '<img data-img="' + escHtml(it.img || 'p1') + '" alt="" style="width:36px;height:36px;border-radius:8px;object-fit:cover;flex:none">' +
+                  '<span style="font-weight:700">' + escHtml(it.name) + ' × ' + toFa(it.qty || 1) + ' <small style="color:var(--muted);font-weight:400">(' + escHtml(it.color_name || colorLabel(it.color)) + ')</small></span>' +
+                '</div>' +
+                '<b>' + money((+it.price || 0) * (+it.qty || 1)) + '</b>' +
+              '</div>'
+            ).join('') +
+          '</div>'
+        : '';
       body.innerHTML =
         '<div class="success">' +
           '<svg class="success-check" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="24" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M15 27l7 7 15-16" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
           '<h3>سفارش شما با موفقیت ثبت شد</h3>' +
-          '<p>سپاس از انتخاب شما، <b>' + escHtml(coData.name || 'همراه گرامی') + '</b>. تصویر و مشخصات کامل مبلمان انتخابی شما برای مدیریت مبل پرنس ارسال گردید و کارشناسان ما به‌زودی با شماره <b dir="ltr">' + escHtml(coData.phone) + '</b> تماس می‌گیرند.</p>' +
+          '<p>سپاس از انتخاب شما، <b>' + escHtml(coData.name || 'همراه گرامی') + '</b>. تصویر مبلمان انتخابی، مشخصات سفارش و اطلاعات شما برای مدیریت مبل پرنس ارسال شد و کارشناسان ما به‌زودی با شماره <b dir="ltr">' + escHtml(coData.phone) + '</b> تماس می‌گیرند.</p>' +
           '<div style="display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:8px">' +
             '<span class="order-no" dir="ltr" style="font-family:monospace;letter-spacing:.06em;font-size:16px;margin:0">' + escHtml(rawCode) + '</span>' +
             '<button type="button" class="btn btn-dark btn-sm" id="coCopyCode">کپی کد پیگیری</button>' +
           '</div>' +
-          '<p style="margin-top:14px;font-size:13px">برآورد سفارش: <b style="color:var(--ink)">' + money(total) + '</b> · ' + escHtml(COORD_LABELS[coData.pay] || 'هماهنگی تلفنی') + '</p>' +
+          receiptItemsHtml +
+          '<p style="margin-top:12px;font-size:13px">برآورد کل سفارش: <b style="color:var(--ink)">' + money(total) + '</b> · ' + escHtml(COORD_LABELS[coData.pay] || 'هماهنگی تلفنی') + '</p>' +
           '<div class="modal-actions">' +
             '<a href="#/shop" class="btn btn-gold" id="coDone">بازگشت به فروشگاه</a>' +
             '<button type="button" class="btn btn-ghost" id="coTrackNow">پیگیری وضعیت سفارش</button>' +
           '</div>' +
         '</div>';
+      hydrate(body);
       cart = []; coupon = null;
       save('perans_cart', cart); save('perans_coupon', null);
       syncCartUI();
@@ -1112,11 +1129,21 @@
       acc.classList.add('is-flash');
       setTimeout(() => acc.classList.remove('is-flash'), 1800);
     };
+    const goTrack = () => {
+      const box = $('#orderTrackBox');
+      if (!box) return;
+      box.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
+      box.classList.add('is-flash');
+      setTimeout(() => box.classList.remove('is-flash'), 1800);
+      const codeInp = $('#trCode');
+      if (codeInp && !reduce) setTimeout(() => codeInp.focus({ preventScroll: true }), 450);
+    };
     if (focus === 'returns') { goPolicy('faq-returns'); return; }
     if (focus === 'warranty') { goPolicy('faq-warranty'); return; }
     if (focus === 'partner') { goPolicy('faq-partner'); return; }
     if (topic) {
       if (topic === 'returns') { goPolicy('faq-returns'); return; }
+      if (topic === 'track') { goTrack(); return; }
       goForm();
     }
   }
@@ -1221,13 +1248,16 @@
     const trackForm = $('#trackOrderForm');
     if (trackForm) {
       const statusFa = {
-        new: 'ثبت شده — در انتظار تأیید کارشناس',
-        confirmed: 'تأیید شده — در نوبت آماده‌سازی',
-        processing: 'در حال آماده‌سازی و بسته‌بندی در کارگاه',
-        sent: 'ارسال شده به مقصد مشتری',
-        done: 'تحویل شده به مشتری',
-        canceled: 'لغو شده'
+        new: 'ثبت اولیه — در انتظار تماس کارشناس فروش',
+        confirmed: 'تأیید شده — هماهنگ‌شده با کارشناس نمایشگاه',
+        processing: 'در حال آماده‌سازی و کنترل کیفی در نمایشگاه',
+        sent: 'ارسال شده به نشانی مشتری',
+        done: 'تحویل نهایی انجام شد',
+        canceled: 'سفارش لغو شده است'
       };
+      const stageIdxMap = { new: 0, confirmed: 1, processing: 2, sent: 3, done: 3 };
+      const stages = ['ثبت و کد پیگیری', 'تأیید کارشناس', 'آماده‌سازی', 'ارسال و تحویل'];
+
       trackForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const code = toEn($('#trCode').value).trim().toUpperCase();
@@ -1237,27 +1267,69 @@
           toast('کد پیگیری و شماره همراه را وارد کنید', false);
           return;
         }
-        resEl.innerHTML = '<p class="hint-sm">در حال استعلام از سرور…</p>';
+        resEl.innerHTML = '<p class="hint-sm">در حال استعلام پرونده سفارش از سرور…</p>';
         try {
           const data = window.PERANS_DB ? await window.PERANS_DB.trackOrder(code, ph) : { found: false };
           if (!data || !data.found) {
-            resEl.innerHTML = '<div style="padding:12px 14px;border-radius:12px;background:rgba(180,68,47,.1);border:1px solid rgba(180,68,47,.25);font-size:13px">سفارشی با این کد و شماره همراه یافت نشد.</div>';
+            resEl.innerHTML = '<div style="padding:12px 14px;border-radius:12px;background:rgba(180,68,47,.1);border:1px solid rgba(180,68,47,.25);font-size:13px">سفارشی با این کد پیگیری و شماره همراه یافت نشد. لطفاً کد پیگیری (مثلاً PERANS-123456) و شماره موبایل هنگام ثبت را بررسی کنید.</div>';
             return;
           }
+
+          const activeStage = data.status === 'canceled' ? -1 : (stageIdxMap[data.status] != null ? stageIdxMap[data.status] : 0);
+          const timelineHtml = data.status === 'canceled'
+            ? ''
+            : '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:12px 0">' +
+                stages.map((lbl, idx) => {
+                  const done = idx <= activeStage;
+                  return '<div style="text-align:center;padding:8px 4px;border-radius:10px;background:' + (done ? '#123f34' : 'rgba(18,63,52,.08)') + ';color:' + (done ? '#fff' : 'var(--muted)') + ';font-size:11px;font-weight:' + (idx === activeStage ? '800' : '600') + '">' +
+                    toFa(idx + 1) + '. ' + lbl +
+                  '</div>';
+                }).join('') +
+              '</div>';
+
           const itemsHtml = Array.isArray(data.items) && data.items.length
-            ? '<div style="margin-top:8px;padding-top:8px;border-top:1px dashed rgba(18,63,52,.2)"><b>اقلام ثبت‌شده:</b><ul style="margin:4px 0 0;padding-right:18px">' +
-              data.items.map((it) => '<li>' + escHtml(it.name || it.id) + ' × ' + toFa(it.qty || 1) + (it.color_name || it.color ? ' (' + escHtml(it.color_name || colorLabel(it.color)) + ')' : '') + '</li>').join('') +
-              '</ul></div>'
+            ? '<div style="margin-top:10px;padding-top:10px;border-top:1px dashed rgba(18,63,52,.2)"><b style="display:block;margin-bottom:8px">اقلام سفارش شما:</b>' +
+              data.items.map((it) => {
+                const rawImg = it.resolvedImg || it.img || 'p1';
+                const cHex = it.color || '#123f34';
+                const cName = it.color_name || colorLabel(cHex);
+                const imgAttr = /^data:image\/|^https?:\/\//i.test(rawImg)
+                  ? 'src="' + escHtml(rawImg) + '"'
+                  : 'data-img="' + escHtml(rawImg) + '"';
+                return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 10px;margin-bottom:6px;border-radius:10px;background:rgba(255,255,255,.72);border:1px solid rgba(18,63,52,.1)">' +
+                  '<div style="display:flex;align-items:center;gap:10px;min-width:0">' +
+                    '<img ' + imgAttr + ' alt="" style="width:42px;height:42px;border-radius:8px;object-fit:cover;flex:none">' +
+                    '<div style="min-width:0">' +
+                      '<b style="display:block;font-size:12.5px">' + escHtml(it.name || it.id) + ' × ' + toFa(it.qty || 1) + '</b>' +
+                      '<small style="color:var(--muted);font-size:11px"><i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:' + escHtml(cHex) + ';vertical-align:middle;margin-left:4px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)"></i>رنگ: ' + escHtml(cName) + '</small>' +
+                    '</div>' +
+                  '</div>' +
+                  '<b style="font-size:12px;flex:none">' + money((+it.price || 0) * (+it.qty || 1)) + '</b>' +
+                '</div>';
+              }).join('') +
+              '</div>'
             : '';
+
+          const noteHtml = data.admin_note
+            ? '<div style="margin-top:10px;padding:10px 12px;border-radius:10px;background:rgba(194,163,92,.14);border:1px solid rgba(194,163,92,.35);font-size:12.3px">' +
+                '<b>پیام کارشناس نمایشگاه پرنس:</b> ' + escHtml(data.admin_note) +
+              '</div>'
+            : '';
+
           resEl.innerHTML =
-            '<div style="padding:14px 16px;border-radius:14px;background:rgba(18,63,52,.07);border:1px solid rgba(18,63,52,.2);font-size:13px;line-height:1.95">' +
-              '<div><b>کد پیگیری:</b> <bdi dir="ltr" style="font-family:monospace;font-weight:800">' + escHtml(data.order_code || code) + '</bdi></div>' +
-              '<div><b>وضعیت فعلی:</b> <span style="color:#123f34;font-weight:800">' + escHtml(statusFa[data.status] || data.status) + '</span></div>' +
-              '<div><b>سفارش‌دهنده:</b> ' + escHtml(data.customer_name) + ' (' + escHtml(data.city || '') + ')</div>' +
-              (data.payment_method ? '<div><b>نحوه هماهنگی:</b> ' + escHtml(COORD_LABELS[data.payment_method] || data.payment_method) + '</div>' : '') +
-              '<div><b>برآورد کل سفارش:</b> ' + money(data.total || 0) + '</div>' +
+            '<div style="padding:16px 18px;border-radius:16px;background:rgba(18,63,52,.06);border:1px solid rgba(18,63,52,.2);font-size:13px;line-height:1.95">' +
+              '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">' +
+                '<div><b>کد پیگیری:</b> <bdi dir="ltr" style="font-family:monospace;font-weight:800;font-size:14px">' + escHtml(data.order_code || code) + '</bdi></div>' +
+                '<span style="padding:3px 10px;border-radius:99px;background:rgba(18,63,52,.12);color:#123f34;font-size:11.5px;font-weight:800">' + escHtml(statusFa[data.status] || data.status) + '</span>' +
+              '</div>' +
+              timelineHtml +
+              '<div><b>ثبت‌کننده سفارش:</b> ' + escHtml(data.customer_name) + ' (' + escHtml(data.city || 'بیرجند') + ')</div>' +
+              (data.payment_method ? '<div><b>نحوه هماهنگی انتخابی:</b> ' + escHtml(COORD_LABELS[data.payment_method] || data.payment_method) + '</div>' : '') +
+              '<div><b>مبلغ برآوردی سفارش:</b> <b>' + money(data.total || 0) + '</b> <span style="font-size:11.5px;color:var(--muted)">(بدون پرداخت آنلاین)</span></div>' +
+              noteHtml +
               itemsHtml +
             '</div>';
+          hydrate(resEl);
         } catch (err) {
           resEl.innerHTML = '<div style="padding:12px 14px;border-radius:12px;background:rgba(180,68,47,.1);font-size:13px">خطا در ارتباط با سرور. کمی بعد دوباره تلاش کنید.</div>';
         }
