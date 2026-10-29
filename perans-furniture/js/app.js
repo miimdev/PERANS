@@ -18,6 +18,38 @@
   const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
   const mq = (q) => (typeof window.matchMedia === 'function' ? window.matchMedia(q) : { matches: false });
   const reduce = mq('(prefers-reduced-motion: reduce)').matches;
+  const escHtml = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  const COLOR_NAMES = {
+    '#123f34': 'سبز زمردی',
+    '#274d3f': 'یشمی تیره',
+    '#1d4c3d': 'سبز جنگلی',
+    '#c2a35c': 'طلایی کهربایی',
+    '#c9a85c': 'طلایی گرم',
+    '#efe7d8': 'کرم عاجی',
+    '#f3ece0': 'شیری روشن',
+    '#ddcbb0': 'بژ شنی',
+    '#d8c8b0': 'کرم شنی',
+    '#5a3d2b': 'قهوه‌ای گردویی',
+    '#6b4a35': 'فندقی',
+    '#3a3733': 'ذغالی تیره',
+    '#23201e': 'مشکی مات',
+    '#b9b4ad': 'طوسی گرم',
+    '#8e8a84': 'طوسی فیلی'
+  };
+  const colorLabel = (hex) => {
+    if (!hex) return 'رنگ نمایشگاه';
+    const k = String(hex).trim().toLowerCase();
+    return COLOR_NAMES[k] || ('کد رنگ ' + k.replace('#', '').toUpperCase());
+  };
+  const COORD_LABELS = {
+    phone_consult: 'هماهنگی تلفنی با کارشناس فروش',
+    showroom_visit: 'مراجعه حضوری به نمایشگاه بیرجند',
+    installment_plan: 'درخواست شرایط اقساطی (بدون سود)',
+    installment: 'شرایط اقساطی (بدون سود)',
+    cod: 'هماهنگی حضوری / هنگام تحویل',
+    online: 'ثبت اینترنتی سفارش'
+  };
 
   /* ---------- data ---------- */
   const BUILTIN_CATS = [
@@ -498,7 +530,7 @@
         badge +
         '<button class="wish ' + (wish.includes(p.id) ? 'on' : '') + '" data-wish="' + p.id + '" aria-label="افزودن ' + p.name + ' به علاقه‌مندی‌ها"><svg aria-hidden="true"><use href="#i-heart"/></svg></button>' +
         '<div class="quick">' +
-          '<button class="btn btn-dark" data-add="' + p.id + '"><svg aria-hidden="true"><use href="#i-cart"/></svg> افزودن به سبد</button>' +
+          '<button class="btn btn-dark" data-add="' + p.id + '"><svg aria-hidden="true"><use href="#i-cart"/></svg> انتخاب برای سفارش</button>' +
           '<a class="btn btn-ghost btn-icon" href="#/product/' + p.id + '" aria-label="مشاهده‌ی ' + p.name + '"><svg aria-hidden="true"><use href="#i-arrow-left"/></svg></a>' +
         '</div>' +
       '</div>' +
@@ -585,22 +617,22 @@
           '<div class="pd-price"><b>' + fmt(p.price) + '</b><small style="color:var(--muted);font-size:13px">تومان</small>' +
             (p.old ? '<del>' + fmt(p.old) + '</del><span class="off">' + toFa(off) + '٪ تخفیف</span>' : '') + '</div>' +
           '<p class="pd-desc">' + p.desc + '</p>' +
-          '<div class="opt-label"><span>رنگ پارچه</span><small id="pdColorName">مخمل زمردی</small></div>' +
+          '<div class="opt-label"><span>رنگ پارچه</span><small id="pdColorName">' + colorLabel(p.colors[0]) + '</small></div>' +
           '<div class="swatches" id="pdSwatches">' + p.colors.map((c, i) => '<button class="swatch ' + (i === 0 ? 'on' : '') + '" data-color="' + c + '" style="background:' + c + '" aria-label="رنگ ' + toFa(i + 1) + '"></button>').join('') + '</div>' +
           '<div class="opt-label"><span>تعداد</span><small>حداکثر ۵ عدد در هر سفارش</small></div>' +
           '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">' +
             '<div class="qty" id="pdQty" style="background:var(--white)"><button data-q="-1" aria-label="کاهش">−</button><span>۱</span><button data-q="1" aria-label="افزایش">+</button></div>' +
-            '<span style="font-size:12.5px;color:var(--muted)">زمان ارسال: ' + p.specs['زمان ارسال'] + '</span>' +
+            '<span style="font-size:12.5px;color:var(--muted)">زمان آماده‌سازی: ' + p.specs['زمان ارسال'] + '</span>' +
           '</div>' +
           '<div class="pd-actions">' +
-            '<button class="btn btn-gold" id="pdAdd"><svg aria-hidden="true"><use href="#i-cart"/></svg> افزودن به سبد خرید</button>' +
-            '<a class="btn btn-ghost" href="#/contact">مشاوره‌ی تلفنی</a>' +
+            '<button class="btn btn-gold" id="pdAdd"><svg aria-hidden="true"><use href="#i-cart"/></svg> افزودن به لیست سفارش</button>' +
+            '<button class="btn btn-dark" id="pdDirectOrder">ثبت مستقیم سفارش</button>' +
           '</div>' +
           '<div class="pd-meta">' +
-            '<div><svg aria-hidden="true"><use href="#i-truck"/></svg> ارسال و نصب رایگان در بیرجند</div>' +
-            '<div><svg aria-hidden="true"><use href="#i-shield"/></svg> ضمانت اصالت کالا</div>' +
-            '<div><svg aria-hidden="true"><use href="#i-ruler"/></svg> فاکتور رسمی و ضمانت اصالت</div>' +
-            '<div><svg aria-hidden="true"><use href="#i-wallet"/></svg> پرداخت تا ۶ قسط بدون سود</div>' +
+            '<div><svg aria-hidden="true"><use href="#i-shield"/></svg> ثبت رایگان بدون پرداخت آنلاین</div>' +
+            '<div><svg aria-hidden="true"><use href="#i-ruler"/></svg> دریافت آنی کد پیگیری سفارش</div>' +
+            '<div><svg aria-hidden="true"><use href="#i-truck"/></svg> هماهنگی ارسال با تیم تخصصی</div>' +
+            '<div><svg aria-hidden="true"><use href="#i-wallet"/></svg> امکان شرایط اقساطی بدون سود</div>' +
           '</div>' +
           '<div class="acc">' +
             '<div class="acc-item open"><button class="acc-btn">مشخصات فنی <svg aria-hidden="true"><use href="#i-chevron-down"/></svg></button>' +
@@ -648,7 +680,7 @@
         $$('#pdSwatches .swatch').forEach((x) => x.classList.remove('on'));
         s.classList.add('on');
         selectedColor = s.dataset.color;
-        $('#pdColorName').textContent = 'کد رنگ ' + selectedColor.replace('#', '').toUpperCase();
+        $('#pdColorName').textContent = colorLabel(selectedColor);
       });
     });
     let qty = 1;
@@ -659,6 +691,12 @@
       });
     });
     $('#pdAdd').addEventListener('click', () => addToCart(p.id, qty, selectedColor));
+    if ($('#pdDirectOrder')) {
+      $('#pdDirectOrder').addEventListener('click', () => {
+        addToCart(p.id, qty, selectedColor, true);
+        openCheckout();
+      });
+    }
 
     /* related */
     const rel = PRODUCTS.filter((x) => x.id !== p.id && (x.cat === p.cat || x.cat === 'decor')).slice(0, 4);
@@ -710,16 +748,17 @@
     const shipping = subtotal === 0 || (subtotal - discount) >= THRESHOLD ? 0 : SHIPPING;
     return { lines, subtotal, discount, shipping, total: Math.max(0, subtotal - discount + shipping) };
   }
-  function addToCart(id, qty = 1, color = null) {
+  function addToCart(id, qty = 1, color = null, skipDrawer = false) {
     const p = PRODUCTS.find((x) => x.id === id);
     if (!p) return;
-    const found = cart.find((x) => x.id === id && x.color === color);
+    const chosenColor = color || (p.colors && p.colors[0]) || '';
+    const found = cart.find((x) => x.id === id && (x.color || '') === chosenColor);
     if (found) found.qty = Math.min(5, found.qty + qty);
-    else cart.push({ id, qty, color: color || p.colors[0] });
+    else cart.push({ id, qty, color: chosenColor });
     save('perans_cart', cart);
     syncCartUI();
-    toast(p.name + ' به سبد اضافه شد');
-    openDrawer();
+    toast(p.name + ' به لیست سفارش شما اضافه شد');
+    if (!skipDrawer) openDrawer();
   }
   function setQty(id, color, delta) {
     const it = cart.find((x) => x.id === id && x.color === color);
@@ -732,14 +771,14 @@
     cart = cart.filter((x) => !(x.id === id && x.color === color));
     save('perans_cart', cart);
     syncCartUI();
-    toast('کالا از سبد حذف شد');
+    toast('کالا از لیست سفارش حذف شد');
   }
   function syncCartUI() {
     const count = cart.reduce((s, i) => s + i.qty, 0);
     const cc = $('#cartCount');
     cc.textContent = toFa(count);
     cc.classList.toggle('on', count > 0);
-    $('#cartSubtitle').textContent = count ? toFa(count) + ' کالا در سبد شما' : 'سبد خالی است';
+    $('#cartSubtitle').textContent = count ? toFa(count) + ' قلم در لیست سفارش شما' : 'لیست سفارش خالی است';
     renderCart();
   }
   function renderCart() {
@@ -747,44 +786,45 @@
     const body = $('#cartBody');
     const foot = $('#cartFoot');
     if (!lines.length) {
-      body.innerHTML = '<div class="cart-empty"><svg aria-hidden="true"><use href="#i-cart"/></svg><p style="font-weight:800;color:var(--ink);font-size:15px;margin-bottom:6px">سبد خرید شما خالی است</p><p style="font-size:12.5px">از فروشگاه، قطعه‌ی دلخواهتان را انتخاب کنید.</p><a href="#/shop" class="btn btn-dark btn-sm" style="margin-top:18px" data-close-cart>رفتن به فروشگاه</a></div>';
-      foot.innerHTML = '<div class="sum-row"><span>جمع سبد</span><span>۰ تومان</span></div>';
+      body.innerHTML = '<div class="cart-empty"><svg aria-hidden="true"><use href="#i-cart"/></svg><p style="font-weight:800;color:var(--ink);font-size:15px;margin-bottom:6px">لیست سفارش شما خالی است</p><p style="font-size:12.5px">مبل و رنگ مورد نظرتان را از فروشگاه انتخاب کنید تا برایتان ثبت و کد پیگیری صادر شود.</p><a href="#/shop" class="btn btn-dark btn-sm" style="margin-top:18px" data-close-cart>مشاهده کلکسیون</a></div>';
+      foot.innerHTML = '<div class="sum-row"><span>جمع سفارش</span><span>۰ تومان</span></div>';
       return;
     }
     body.innerHTML = lines.map((l) => {
       const off = l.p.old ? '<small style="text-decoration:line-through">' + fmt(l.p.old) + '</small> ' : '';
+      const cHex = l.color || (l.p.colors && l.p.colors[0]) || '#123f34';
       return '<div class="citem">' +
-        '<img data-img="' + l.p.img + '" alt="' + l.p.name + '">' +
+        '<img data-img="' + l.p.img + '" alt="' + escHtml(l.p.name) + '">' +
         '<div class="citem-body">' +
-          '<b>' + l.p.name + '</b>' +
-          '<small>رنگ: <i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + (l.color || l.p.colors[0]) + ';vertical-align:middle;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)"></i> · ' + catName(l.p.cat) + '</small>' +
+          '<b>' + escHtml(l.p.name) + '</b>' +
+          '<small>رنگ: <i style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + escHtml(cHex) + ';vertical-align:middle;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)"></i> ' + escHtml(colorLabel(cHex)) + ' · ' + escHtml(catName(l.p.cat)) + '</small>' +
           '<div class="citem-row">' +
             '<div class="qty"><button data-dec="' + l.id + '" data-color="' + (l.color || '') + '" aria-label="کاهش">−</button><span>' + toFa(l.qty) + '</span><button data-inc="' + l.id + '" data-color="' + (l.color || '') + '" aria-label="افزایش">+</button></div>' +
             '<span class="citem-price">' + off + fmt(l.p.price * l.qty) + '</span>' +
           '</div>' +
-          '<button class="citem-del" data-remove="' + l.id + '" data-color="' + (l.color || '') + '">حذف از سبد</button>' +
+          '<button class="citem-del" data-remove="' + l.id + '" data-color="' + (l.color || '') + '">حذف از لیست</button>' +
         '</div>' +
       '</div>';
     }).join('');
     hydrate(body);
 
-    const pct = Math.min(100, (subtotal / THRESHOLD) * 100);
+    const pct = THRESHOLD > 0 ? Math.min(100, (subtotal / THRESHOLD) * 100) : 100;
     const remain = THRESHOLD - subtotal;
     foot.innerHTML =
       '<div class="coupon">' +
-        '<input id="couponInput" placeholder="کد تخفیف (PERANS10)" value="' + (coupon || '') + '" aria-label="کد تخفیف">' +
+        '<input id="couponInput" placeholder="کد تخفیف (مثلاً PERANS10)" value="' + (coupon || '') + '" aria-label="کد تخفیف">' +
         '<button id="couponApply">اعمال</button>' +
       '</div>' +
       (shipping === 0
-        ? '<div style="font-size:11.5px;color:#2f7d5f;font-weight:700;margin-bottom:8px">✓ ارسال رایگان برای این سفارش فعال شد</div>'
-        : '<div style="font-size:11.5px;color:var(--muted);margin-bottom:8px">' + fmt(remain) + ' تومان تا ارسال رایگان</div>') +
+        ? '<div style="font-size:11.5px;color:#2f7d5f;font-weight:700;margin-bottom:8px">✓ هزینه ارسال با تعرفه ویژه محاسبه شد</div>'
+        : '<div style="font-size:11.5px;color:var(--muted);margin-bottom:8px">' + fmt(remain) + ' تومان تا سقف ارسال رایگان</div>') +
       '<div class="ship-bar"><i style="width:' + pct + '%"></i></div>' +
       '<div class="sum-row"><span>جمع کالاها</span><span>' + money(subtotal) + '</span></div>' +
       (discount ? '<div class="sum-row"><span>تخفیف (' + toFa(COUPONS[coupon] * 100) + '٪)</span><span class="free">− ' + money(discount) + '</span></div>' : '') +
-      '<div class="sum-row"><span>ارسال و نصب</span><span class="' + (shipping === 0 ? 'free' : '') + '">' + (shipping === 0 ? 'رایگان' : money(shipping)) + '</span></div>' +
-      '<div class="sum-row total"><span>مبلغ قابل پرداخت</span><span>' + money(total) + '</span></div>' +
-      '<button class="btn btn-gold btn-block" id="checkoutBtn">تکمیل خرید <svg aria-hidden="true"><use href="#i-arrow-left"/></svg></button>' +
-      '<p style="font-size:10.5px;color:var(--muted);text-align:center;margin-top:10px">پرداخت امن · ۷ روز ضمانت بازگشت</p>';
+      '<div class="sum-row"><span>برآورد ارسال</span><span class="' + (shipping === 0 ? 'free' : '') + '">' + (shipping === 0 ? 'رایگان / طبق هماهنگی' : money(shipping)) + '</span></div>' +
+      '<div class="sum-row total"><span>جمع برآوردی سفارش</span><span>' + money(total) + '</span></div>' +
+      '<button class="btn btn-gold btn-block" id="checkoutBtn">ادامه و ثبت سفارش <svg aria-hidden="true"><use href="#i-arrow-left"/></svg></button>' +
+      '<p style="font-size:10.5px;color:var(--muted);text-align:center;margin-top:10px">بدون پرداخت آنلاین · دریافت آنی کد پیگیری · هماهنگی تلفنی کارشناس</p>';
 
     hydrate(foot);
     $('#couponApply').addEventListener('click', applyCoupon);
@@ -817,11 +857,11 @@
     document.body.classList.remove('locked');
   }
 
-  /* ---------- checkout ---------- */
+  /* ---------- order registration (consultative, zero online payment) ---------- */
   let coStep = 1;
-  const coData = { name: '', phone: '', city: '', address: '', note: '', pay: 'online' };
+  const coData = { name: '', phone: '', city: '', zip: '', address: '', note: '', pay: 'phone_consult' };
   function openCheckout() {
-    if (!cart.length) { toast('سبد خرید خالی است', false); return; }
+    if (!cart.length) { toast('لیست سفارش شما خالی است', false); return; }
     coStep = 1;
     $('#checkoutModal').classList.add('on');
     document.body.classList.add('locked');
@@ -832,7 +872,7 @@
     document.body.classList.remove('locked');
   }
   function stepsHTML() {
-    const S = [{ n: 1, t: 'اطلاعات تحویل' }, { n: 2, t: 'پرداخت' }, { n: 3, t: 'تأیید سفارش' }];
+    const S = [{ n: 1, t: 'مشخصات ثبت‌کننده' }, { n: 2, t: 'نحوه هماهنگی' }, { n: 3, t: 'دریافت کد پیگیری' }];
     return S.map((s, i) => {
       const cls = coStep === s.n ? 'on' : (coStep > s.n ? 'done' : '');
       const icon = coStep > s.n ? '<svg width="13" height="13" aria-hidden="true"><use href="#i-check"/></svg>' : toFa(s.n);
@@ -843,20 +883,26 @@
     $('#coSteps').innerHTML = stepsHTML();
     const body = $('#coBody');
     if (coStep === 1) {
-      body.innerHTML = '<h3>اطلاعات تحویل</h3><p style="font-size:12.5px;color:var(--muted)">همه‌ی سفارش‌ها با هماهنگی تلفنی پیش از ارسال، تحویل داده می‌شوند.</p>' +
-        '<div class="two"><div class="field"><label>نام و نام خانوادگی *</label><input id="coName" value="' + coData.name + '" placeholder="نام گیرنده"><span class="msg">نام را وارد کنید.</span></div>' +
-        '<div class="field"><label>شماره موبایل *</label><input id="coPhone" inputmode="tel" value="' + coData.phone + '" placeholder="۰۹۱۲۱۲۳۴۵۶۷"><span class="msg">شماره‌ی موبایل معتبر وارد کنید.</span></div></div>' +
-        '<div class="two"><div class="field"><label>شهر *</label><input id="coCity" value="' + coData.city + '" placeholder="بیرجند"><span class="msg">شهر را وارد کنید.</span></div>' +
-        '<div class="field"><label>کد پستی</label><input id="coZip" inputmode="numeric" placeholder="اختیاری"></div></div>' +
-        '<div class="field"><label>نشانی کامل *</label><textarea id="coAddress" placeholder="خیابان، کوچه، پلاک، واحد"></textarea><span class="msg">نشانی را کامل وارد کنید.</span></div>' +
-        '<div class="field"><label>توضیح برای تیم نصب</label><input id="coNote" value="' + coData.note + '" placeholder="مثلاً آسانسور ندارد، طبقه‌ی سوم"></div>' +
-        '<div class="modal-actions"><button class="btn btn-ghost" id="coBack">بازگشت به سبد</button><button class="btn btn-gold" id="coNext">ادامه <svg aria-hidden="true"><use href="#i-arrow-left"/></svg></button></div>';
+      body.innerHTML =
+        '<h3>مشخصات ثبت‌کننده سفارش</h3>' +
+        '<p style="font-size:12.5px;color:var(--muted);line-height:1.85">در مبل پرنس هیچ پرداخت آنلاینی از شما دریافت نمی‌شود؛ پس از ثبت مشخصات، <b>کد پیگیری</b> صادر شده و کارشناس نمایشگاه برای نهایی‌سازی رنگ، ابعاد و نحوه تسویه با شما تماس می‌گیرد.</p>' +
+        '<div class="two">' +
+          '<div class="field"><label>نام و نام خانوادگی ثبت‌کننده *</label><input id="coName" value="' + escHtml(coData.name) + '" placeholder="مثلاً علی رضایی"><span class="msg">نام خود را وارد کنید.</span></div>' +
+          '<div class="field"><label>شماره موبایل در دسترس *</label><input id="coPhone" inputmode="tel" dir="ltr" value="' + escHtml(coData.phone) + '" placeholder="0915..."><span class="msg">شماره‌ی موبایل معتبر وارد کنید.</span></div>' +
+        '</div>' +
+        '<div class="two">' +
+          '<div class="field"><label>شهر *</label><input id="coCity" value="' + escHtml(coData.city) + '" placeholder="بیرجند"><span class="msg">نام شهر را وارد کنید.</span></div>' +
+          '<div class="field"><label>کد پستی (اختیاری)</label><input id="coZip" inputmode="numeric" dir="ltr" value="' + escHtml(coData.zip || '') + '" placeholder="اختیاری"></div>' +
+        '</div>' +
+        '<div class="field"><label>نشانی محل تحویل *</label><textarea id="coAddress" placeholder="خیابان، کوچه، پلاک، واحد">' + escHtml(coData.address) + '</textarea><span class="msg">نشانی را کامل وارد کنید.</span></div>' +
+        '<div class="field"><label>توضیحات سفارش (رنگ دلخواه، ابعاد نشیمن، شرایط ساختمان و…)</label><input id="coNote" value="' + escHtml(coData.note) + '" placeholder="مثلاً رنگ پارچه کرم روشن باشد یا ابعاد نشیمن ۲۸ متر است"></div>' +
+        '<div class="modal-actions"><button class="btn btn-ghost" id="coBack">بازگشت به لیست</button><button class="btn btn-gold" id="coNext">مرحله بعد: انتخاب نحوه هماهنگی <svg aria-hidden="true"><use href="#i-arrow-left"/></svg></button></div>';
       $('#coBack').addEventListener('click', () => { closeCheckout(); openDrawer(); });
       $('#coNext').addEventListener('click', () => {
         coData.name = $('#coName').value.trim();
         coData.phone = toEn($('#coPhone').value).replace(/[\s-]/g, '');
         coData.city = $('#coCity').value.trim();
-        coData.zip = ($('#coZip') && $('#coZip').value.trim()) || '';
+        coData.zip = toEn(($('#coZip') && $('#coZip').value.trim()) || '');
         coData.address = $('#coAddress').value.trim();
         coData.note = $('#coNote').value.trim();
         let ok = true;
@@ -864,35 +910,66 @@
         mark($('#coName'), coData.name.length < 3);
         mark($('#coPhone'), !/^0?9\d{9}$/.test(coData.phone));
         mark($('#coCity'), coData.city.length < 2);
-        mark($('#coAddress'), coData.address.length < 8);
-        if (!ok) { toast('لطفاً فیلدهای مشخص‌شده را کامل کنید', false); return; }
+        mark($('#coAddress'), coData.address.length < 6);
+        if (!ok) { toast('لطفاً فیلدهای ستاره‌دار را کامل کنید', false); return; }
         coStep = 2; renderCheckout();
       });
     } else if (coStep === 2) {
-      const { subtotal, discount, shipping, total } = totals();
-      body.innerHTML = '<h3>شیوه‌ی پرداخت</h3><p style="font-size:12.5px;color:var(--muted)">این یک فروشگاه نمایشی است؛ هیچ پرداخت واقعی انجام نمی‌شود.</p>' +
+      const { lines, subtotal, discount, shipping, total } = totals();
+      const selPay = coData.pay || 'phone_consult';
+      const itemsPreview = lines.map((l) => {
+        const cHex = l.color || (l.p.colors && l.p.colors[0]) || '#123f34';
+        return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px dashed rgba(20,17,15,.08);font-size:12.5px">' +
+          '<div style="display:flex;align-items:center;gap:10px;min-width:0">' +
+            '<img data-img="' + l.p.img + '" alt="" style="width:42px;height:42px;border-radius:10px;object-fit:cover;flex:none">' +
+            '<div style="min-width:0"><b style="display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escHtml(l.p.name) + ' × ' + toFa(l.qty) + '</b>' +
+            '<small style="color:var(--muted)">رنگ: ' + escHtml(colorLabel(cHex)) + '</small></div>' +
+          '</div>' +
+          '<b style="flex:none">' + money(l.p.price * l.qty) + '</b>' +
+        '</div>';
+      }).join('');
+
+      body.innerHTML =
+        '<h3>انتخاب نحوه هماهنگی و ثبت نهایی</h3>' +
+        '<p style="font-size:12.5px;color:var(--muted)">ترجیح می‌دهید کارشناسان نمایشگاه مبل پرنس چگونه ادامه فرآیند سفارش را با شما هماهنگ کنند؟</p>' +
         '<div class="pay-opts">' +
-          '<label class="pay-opt"><input type="radio" name="pay" value="online" checked><div><b>پرداخت آنلاین (درگاه امن)</b><small>انتقال به درگاه شاپرک — ۱۰٪ تخفیف نقدی</small></div></label>' +
-          '<label class="pay-opt"><input type="radio" name="pay" value="installment"><div><b>پرداخت تا ۶ قسط بدون سود</b><small>با چک یا کارت اعتباری بانک‌های همکار</small></div></label>' +
-          '<label class="pay-opt"><input type="radio" name="pay" value="cod"><div><b>پرداخت در محل (فروشگاه یا تحویل)</b><small>فقط برای بیرجند</small></div></label>' +
+          '<label class="pay-opt"><input type="radio" name="pay" value="phone_consult"' + (selPay === 'phone_consult' ? ' checked' : '') + '><div><b>هماهنگی تلفنی با کارشناس فروش</b><small>تماس کارشناس نمایشگاه جهت نهایی‌سازی رنگ پارچه، زمان ارسال و نحوه تسویه</small></div></label>' +
+          '<label class="pay-opt"><input type="radio" name="pay" value="showroom_visit"' + (selPay === 'showroom_visit' ? ' checked' : '') + '><div><b>مراجعه حضوری به نمایشگاه بیرجند</b><small>رزرو مدل‌های انتخابی جهت بازدید از نزدیک در شعبه خیابان انقلاب، نبش انقلاب ۳</small></div></label>' +
+          '<label class="pay-opt"><input type="radio" name="pay" value="installment_plan"' + (selPay === 'installment_plan' ? ' checked' : '') + '><div><b>درخواست شرایط اقساطی (بدون سود)</b><small>بررسی شرایط اقساط تا ۶ ماه با چک صیادی طی تماس واحد فروش</small></div></label>' +
         '</div>' +
-        '<div class="panel" style="margin-top:16px;padding:16px;box-shadow:none">' +
-          '<div class="sum-row"><span>جمع کالاها</span><span>' + money(subtotal) + '</span></div>' +
-          (discount ? '<div class="sum-row"><span>تخفیف</span><span class="free">− ' + money(discount) + '</span></div>' : '') +
-          '<div class="sum-row"><span>ارسال و نصب</span><span>' + (shipping ? money(shipping) : 'رایگان') + '</span></div>' +
-          '<div class="sum-row total" style="margin-bottom:0"><span>مبلغ نهایی</span><span>' + money(total) + '</span></div>' +
+        '<div class="panel" style="margin-top:16px;padding:14px 16px;box-shadow:none">' +
+          '<div style="font-size:12px;font-weight:800;margin-bottom:6px;color:var(--ink)">خلاصه مبلمان انتخابی شما:</div>' +
+          itemsPreview +
+          '<div class="sum-row" style="margin-top:10px"><span>جمع اقلام</span><span>' + money(subtotal) + '</span></div>' +
+          (discount ? '<div class="sum-row"><span>تخفیف کد هدیه</span><span class="free">− ' + money(discount) + '</span></div>' : '') +
+          '<div class="sum-row"><span>برآورد ارسال</span><span>' + (shipping ? money(shipping) : 'رایگان / طبق هماهنگی') + '</span></div>' +
+          '<div class="sum-row total" style="margin-bottom:0"><span>مبلغ برآوردی سفارش</span><span>' + money(total) + '</span></div>' +
         '</div>' +
-        '<div class="modal-actions"><button class="btn btn-ghost" id="coPrev">مرحله قبل</button><button class="btn btn-gold" id="coPay">ثبت و پرداخت</button></div>';
+        '<div class="modal-actions"><button class="btn btn-ghost" id="coPrev">مرحله قبل</button><button class="btn btn-gold" id="coPay">ثبت سفارش و دریافت کد پیگیری</button></div>';
+
+      hydrate(body);
       $('#coPrev').addEventListener('click', () => { coStep = 1; renderCheckout(); });
       $('#coPay').addEventListener('click', async () => {
         const payBtn = $('#coPay');
-        coData.pay = ($('input[name="pay"]:checked') || {}).value || 'online';
+        coData.pay = ($('input[name="pay"]:checked') || {}).value || 'phone_consult';
         const { subtotal, discount, shipping, total } = totals();
         const orderItems = cart.map((it) => {
-          const pr = byId(it.id) || { id: it.id, name: it.id, price: 0 };
-          return { id: pr.id, name: pr.name, qty: it.qty, price: pr.price, color: it.color || '' };
+          const pr = PRODUCTS.find((x) => x.id === it.id) || { id: it.id, name: it.id, cat: '', img: 'p1', price: 0, colors: [], specs: {} };
+          const cHex = it.color || (pr.colors && pr.colors[0]) || '';
+          return {
+            id: pr.id,
+            name: pr.name,
+            cat: pr.cat || '',
+            cat_name: catName(pr.cat) || '',
+            img: pr.img || 'p1',
+            qty: it.qty,
+            price: pr.price,
+            color: cHex,
+            color_name: colorLabel(cHex),
+            specs: pr.specs || {}
+          };
         });
-        if (payBtn) { payBtn.disabled = true; payBtn.textContent = 'در حال ثبت سفارش…'; }
+        if (payBtn) { payBtn.disabled = true; payBtn.textContent = 'در حال ثبت سفارش و صدور کد پیگیری…'; }
         let orderCode = 'PERANS-' + Math.floor(100000 + Math.random() * 899999);
         if (window.PERANS_DB && typeof window.PERANS_DB.submitOrder === 'function') {
           try {
@@ -934,20 +1011,47 @@
       });
     } else {
       const total = coData.lastTotal != null ? coData.lastTotal : totals().total;
-      const orderNo = toFa(coData.lastOrderCode || ('PERANS-' + Math.floor(100000 + Math.random() * 899999)));
-      body.innerHTML = '<div class="success">' +
-        '<svg class="success-check" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="24" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M15 27l7 7 15-16" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
-        '<h3>سفارش شما ثبت شد</h3>' +
-        '<p>ممنون از اعتمادتان، ' + (coData.name || 'دوست عزیز') + '. کارشناس پرنس تا یک روز کاری برای هماهنگی تحویل تماس می‌گیرد.</p>' +
-        '<span class="order-no">شماره سفارش: ' + orderNo + '</span>' +
-        '<p style="margin-top:14px">مبلغ: <b style="color:var(--ink)">' + money(total) + '</b> · ' + (coData.pay === 'online' ? 'پرداخت آنلاین' : coData.pay === 'installment' ? 'پرداخت قسطی' : 'پرداخت در محل') + '</p>' +
-        '<div class="modal-actions"><a href="#/shop" class="btn btn-gold" id="coDone">ادامه‌ی خرید</a><a href="#/contact" class="btn btn-ghost">پیگیری سفارش</a></div>' +
-      '</div>';
+      const rawCode = coData.lastOrderCode || ('PERANS-' + Math.floor(100000 + Math.random() * 899999));
+      body.innerHTML =
+        '<div class="success">' +
+          '<svg class="success-check" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="24" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M15 27l7 7 15-16" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+          '<h3>سفارش شما با موفقیت ثبت شد</h3>' +
+          '<p>سپاس از انتخاب شما، <b>' + escHtml(coData.name || 'همراه گرامی') + '</b>. تصویر و مشخصات کامل مبلمان انتخابی شما برای مدیریت مبل پرنس ارسال گردید و کارشناسان ما به‌زودی با شماره <b dir="ltr">' + escHtml(coData.phone) + '</b> تماس می‌گیرند.</p>' +
+          '<div style="display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:8px">' +
+            '<span class="order-no" dir="ltr" style="font-family:monospace;letter-spacing:.06em;font-size:16px;margin:0">' + escHtml(rawCode) + '</span>' +
+            '<button type="button" class="btn btn-dark btn-sm" id="coCopyCode">کپی کد پیگیری</button>' +
+          '</div>' +
+          '<p style="margin-top:14px;font-size:13px">برآورد سفارش: <b style="color:var(--ink)">' + money(total) + '</b> · ' + escHtml(COORD_LABELS[coData.pay] || 'هماهنگی تلفنی') + '</p>' +
+          '<div class="modal-actions">' +
+            '<a href="#/shop" class="btn btn-gold" id="coDone">بازگشت به فروشگاه</a>' +
+            '<button type="button" class="btn btn-ghost" id="coTrackNow">پیگیری وضعیت سفارش</button>' +
+          '</div>' +
+        '</div>';
       cart = []; coupon = null;
       save('perans_cart', cart); save('perans_coupon', null);
       syncCartUI();
-      setTimeout(() => { $('#coDone') && $('#coDone').addEventListener('click', closeCheckout); }, 0);
-      document.title = 'سفارش ثبت شد | مبل پرنس';
+      setTimeout(() => {
+        if ($('#coDone')) $('#coDone').addEventListener('click', closeCheckout);
+        if ($('#coCopyCode')) {
+          $('#coCopyCode').addEventListener('click', () => {
+            if (navigator.clipboard) navigator.clipboard.writeText(rawCode).then(() => toast('کد پیگیری ' + rawCode + ' کپی شد'));
+          });
+        }
+        if ($('#coTrackNow')) {
+          $('#coTrackNow').addEventListener('click', () => {
+            closeCheckout();
+            location.hash = '#/contact?topic=track';
+            setTimeout(() => {
+              const trC = $('#trCode'), trP = $('#trPhone'), trF = $('#trackOrderForm');
+              if (trC) trC.value = rawCode;
+              if (trP) trP.value = coData.phone || '';
+              if (trC) trC.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              if (trF && trC && trP && trC.value && trP.value) trF.dispatchEvent(new Event('submit', { cancelable: true }));
+            }, 320);
+          });
+        }
+      }, 0);
+      document.title = 'کد پیگیری صادر شد | مبل پرنس';
     }
   }
 
@@ -1140,12 +1244,19 @@
             resEl.innerHTML = '<div style="padding:12px 14px;border-radius:12px;background:rgba(180,68,47,.1);border:1px solid rgba(180,68,47,.25);font-size:13px">سفارشی با این کد و شماره همراه یافت نشد.</div>';
             return;
           }
-          const escHtml = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+          const itemsHtml = Array.isArray(data.items) && data.items.length
+            ? '<div style="margin-top:8px;padding-top:8px;border-top:1px dashed rgba(18,63,52,.2)"><b>اقلام ثبت‌شده:</b><ul style="margin:4px 0 0;padding-right:18px">' +
+              data.items.map((it) => '<li>' + escHtml(it.name || it.id) + ' × ' + toFa(it.qty || 1) + (it.color_name || it.color ? ' (' + escHtml(it.color_name || colorLabel(it.color)) + ')' : '') + '</li>').join('') +
+              '</ul></div>'
+            : '';
           resEl.innerHTML =
-            '<div style="padding:14px 16px;border-radius:14px;background:rgba(18,63,52,.07);border:1px solid rgba(18,63,52,.2);font-size:13px;line-height:1.9">' +
+            '<div style="padding:14px 16px;border-radius:14px;background:rgba(18,63,52,.07);border:1px solid rgba(18,63,52,.2);font-size:13px;line-height:1.95">' +
+              '<div><b>کد پیگیری:</b> <bdi dir="ltr" style="font-family:monospace;font-weight:800">' + escHtml(data.order_code || code) + '</bdi></div>' +
               '<div><b>وضعیت فعلی:</b> <span style="color:#123f34;font-weight:800">' + escHtml(statusFa[data.status] || data.status) + '</span></div>' +
               '<div><b>سفارش‌دهنده:</b> ' + escHtml(data.customer_name) + ' (' + escHtml(data.city || '') + ')</div>' +
-              '<div><b>مبلغ کل فاکتور:</b> ' + money(data.total || 0) + '</div>' +
+              (data.payment_method ? '<div><b>نحوه هماهنگی:</b> ' + escHtml(COORD_LABELS[data.payment_method] || data.payment_method) + '</div>' : '') +
+              '<div><b>برآورد کل سفارش:</b> ' + money(data.total || 0) + '</div>' +
+              itemsHtml +
             '</div>';
         } catch (err) {
           resEl.innerHTML = '<div style="padding:12px 14px;border-radius:12px;background:rgba(180,68,47,.1);font-size:13px">خطا در ارتباط با سرور. کمی بعد دوباره تلاش کنید.</div>';
