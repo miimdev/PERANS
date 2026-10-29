@@ -1,0 +1,73 @@
+/* ==========================================================================
+   PERANS — فونت‌ها
+   همه‌ی فایل‌ها از پوشه‌ی ../fonts/ خوانده می‌شوند (نسبت به همین فایل css).
+   Rokh: ۱۱ وزن موجود · Vazirmatn: فونت جایگزین (وزیرمتن وریبل)
+   فایل‌های لازم داخل پوشه‌ی fonts/:
+   Rokh-Black · Rokh-Bold · Rokh-ExtraBold · Rokh-HairLine · Rokh-Light
+   Rokh-Medium · Rokh-Normal · Rokh-Regular · Rokh-SemiBold · Rokh-Thin
+   Rokh-UltraBold · Vazirmatn
+   ========================================================================== */
+
+/* ------------------------------- Rokh ------------------------------------- */
+@font-face{
+  font-family:"Rokh";
+  src:local("Rokh HairLine"),url("../fonts/Rokh-HairLine.woff2") format("woff2");
+  font-weight:100;font-style:normal;font-display:swap;
+}
+@font-face{
+  font-family:"Rokh";
+  src:local("Rokh Thin"),url("../fonts/Rokh-Thin.woff2") format("woff2");
+  font-weight:200;font-style:normal;font-display:swap;
+}
+@font-face{
+  font-family:"Rokh";
+  src:local("Rokh Light"),url("../fonts/Rokh-Light.woff2") format("woff2");
+  font-weight:300;font-style:normal;font-display:swap;
+}
+@font-face{
+  font-family:"Rokh";
+  src:local("Rokh Normal"),url("../fonts/Rokh-Normal.woff2") format("woff2");
+  font-weight:400;font-style:normal;font-display:swap;
+}
+@font-face{
+  font-family:"Rokh";
+  src:local("Rokh Regular"),url("../fonts/Rokh-Regular.woff2") format("woff2");
+  font-weight:450;font-style:normal;font-display:swap;
+}
+@font-face{
+  font-family:"Rokh";
+  src:local("Rokh Medium"),url("../fonts/Rokh-Medium.woff2") format("woff2");
+  font-weight:500;font-style:normal;font-display:swap;
+}
+@font-face{
+  font-family:"Rokh";
+  src:local("Rokh SemiBold"),url("../fonts/Rokh-SemiBold.woff2") format("woff2");
+  font-weight:600;font-style:normal;font-display:swap;
+}
+@font-face{
+  font-family:"Rokh";
+  src:local("Rokh Bold"),url("../fonts/Rokh-Bold.woff2") format("woff2");
+  font-weight:700;font-style:normal;font-display:swap;
+}
+@font-face{
+  font-family:"Rokh";
+  src:local("Rokh UltraBold"),url("../fonts/Rokh-UltraBold.woff2") format("woff2");
+  font-weight:800;font-style:normal;font-display:swap;
+}
+@font-face{
+  font-family:"Rokh";
+  src:local("Rokh ExtraBold"),url("../fonts/Rokh-ExtraBold.woff2") format("woff2");
+  font-weight:850;font-style:normal;font-display:swap;
+}
+@font-face{
+  font-family:"Rokh";
+  src:local("Rokh Black"),url("../fonts/Rokh-Black.woff2") format("woff2");
+  font-weight:900;font-style:normal;font-display:swap;
+}
+
+/* ---------------------------- Vazirmatn (جایگزین) -------------------------- */
+@font-face{
+  font-family:"Vazirmatn";
+  src:local("Vazirmatn"),url("../fonts/Vazirmatn.woff2") format("woff2");
+  font-weight:100 900;font-style:normal;font-display:swap;
+}

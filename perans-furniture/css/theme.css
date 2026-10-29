@@ -1,0 +1,835 @@
+/* ==========================================================================
+   مبل پرنس — لایه‌ی گرافیکی و موشن
+   ۱) لودر سینمایی  ۲) هدر شیشه‌ای شناور + مگامنو  ۳) فوتر لوکس
+   ۴) نشانگر موس  ۵) افکت‌های کارت و دکمه  ۶) پرده‌ی گذار صفحه
+   ========================================================================== */
+
+:root{
+  --ink-2:#0e0c0a;
+  --ink-3:#1b1613;
+  --glass:rgba(18,15,13,.80);
+  --glass-2:rgba(24,20,17,.92);
+  --gold-soft:rgba(194,163,92,.16);
+  --hd-h:64px;
+  --ann-h:36px;
+}
+
+/* ====================== ۱. LOADER ====================== */
+.ld{position:fixed;inset:0;z-index:400;color:#f7f1e6;overflow:hidden;pointer-events:all}
+.ld__panel{position:absolute;inset:0;overflow:hidden;
+  background:
+    radial-gradient(120% 90% at 88% 0%, #2a221a 0%, transparent 55%),
+    radial-gradient(90% 70% at 0% 100%, #241d17 0%, transparent 62%),
+    linear-gradient(180deg,#141110 0%,#0e0c0a 55%,#12100d 100%);
+  transition:transform 1.15s cubic-bezier(.76,0,.24,1),border-radius 1.15s cubic-bezier(.76,0,.24,1);
+  will-change:transform}
+.ld__panel--back{background:linear-gradient(180deg,#b89a55,#8d7238);opacity:.95;transition-delay:.09s}
+.ld__grid{position:absolute;inset:0;opacity:.16;
+  background-image:linear-gradient(rgba(227,201,141,.22) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(227,201,141,.22) 1px,transparent 1px);
+  background-size:64px 64px;
+  -webkit-mask-image:radial-gradient(70% 60% at 50% 45%,#000 0%,transparent 78%);
+          mask-image:radial-gradient(70% 60% at 50% 45%,#000 0%,transparent 78%)}
+.ld__blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.55;animation:ldBlob 11s ease-in-out infinite alternate}
+.ld__blob--a{width:52vw;height:52vw;max-width:760px;max-height:760px;top:-16vw;inset-inline-start:-10vw;
+  background:radial-gradient(circle,rgba(194,163,92,.42),transparent 68%)}
+.ld__blob--b{width:44vw;height:44vw;max-width:640px;max-height:640px;bottom:-14vw;inset-inline-end:-10vw;
+  background:radial-gradient(circle,rgba(18,63,52,.55),transparent 70%);animation-delay:-5s}
+@keyframes ldBlob{to{transform:translate3d(5vw,4vh,0) scale(1.12)}}
+
+.ld__center{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:16px;
+  text-align:center;padding:24px;transition:opacity .45s,transform .6s var(--ease)}
+.ld__mark{width:144px;height:144px;position:relative}
+.ld__svg{width:100%;height:100%;overflow:visible}
+.ld__orbit{opacity:.5;animation:ldOrbit 3s ease-in-out infinite;transform-origin:50% 50%}
+@keyframes ldOrbit{0%,100%{opacity:.35;transform:scale(1)}50%{opacity:.8;transform:scale(1.03)}}
+.ld__ring{stroke-dasharray:100;stroke-dashoffset:100;transform:rotate(-90deg);transform-origin:50% 50%;
+  animation:ldRing 2.6s cubic-bezier(.65,0,.35,1) infinite;stroke:url(#ldGrad)}
+@keyframes ldRing{0%{stroke-dashoffset:100}55%{stroke-dashoffset:18}100%{stroke-dashoffset:-100}}
+.ld__spin{transform-origin:70px 70px;animation:ldSpin 2.6s cubic-bezier(.65,0,.35,1) infinite}
+@keyframes ldSpin{to{transform:rotate(360deg)}}
+.ld__dot{filter:drop-shadow(0 0 10px rgba(227,201,141,.95))}
+.ld__logo path{stroke-dasharray:120;stroke-dashoffset:120;animation:ldDraw 1.5s var(--ease-out) forwards}
+.ld__logo path:nth-child(2){animation-delay:.12s}
+.ld__logo path:nth-child(3){animation-delay:.24s}
+.ld__logo path:nth-child(4){animation-delay:.3s}
+.ld__logo path:nth-child(5){animation-delay:.36s}
+.ld__logo path:nth-child(6){animation-delay:.42s}
+@keyframes ldDraw{to{stroke-dashoffset:0}}
+
+.ld__brand{display:grid;gap:6px;overflow:hidden}
+.ld__name{font-size:clamp(24px,3vw,32px);font-weight:800;letter-spacing:-.01em;
+  opacity:0;transform:translateY(120%);animation:ldUp .9s var(--ease-out) .35s forwards}
+.ld__en{font-size:10.5px;font-weight:500;letter-spacing:.42em;color:#a99a86;
+  opacity:0;transform:translateY(120%);animation:ldUp .9s var(--ease-out) .5s forwards}
+@keyframes ldUp{to{opacity:1;transform:none}}
+.ld__bar{position:relative;width:min(260px,62vw);height:2px;border-radius:99px;background:rgba(255,255,255,.12);
+  margin-top:6px;overflow:hidden;opacity:0;animation:ldUp .8s var(--ease-out) .65s forwards}
+.ld__bar i{position:absolute;inset-block:0;inset-inline-start:0;width:0;border-radius:inherit;
+  background:linear-gradient(90deg,#a4843f,#e3c98d 55%,#fff3d4);
+  box-shadow:0 0 14px rgba(227,201,141,.7);transition:width .35s var(--ease)}
+.ld__bar i::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.85),transparent);
+  animation:ldShimmer 1.5s linear infinite}
+@keyframes ldShimmer{from{transform:translateX(-120%)}to{transform:translateX(120%)}}
+.ld__meta{display:flex;align-items:center;gap:14px;font-size:11.5px;color:#a99a86;
+  opacity:0;animation:ldUp .8s var(--ease-out) .75s forwards}
+.ld__pct{font-weight:800;color:#e3c98d;font-variant-numeric:tabular-nums;min-width:34px}
+.ld__hint{letter-spacing:.02em}
+
+.ld.is-done .ld__center{opacity:0;transform:translateY(-18px) scale(.96)}
+.ld.is-done .ld__ring{animation:none;stroke-dashoffset:0;transition:stroke-dashoffset .35s}
+.ld.is-done .ld__spin{animation:none}
+.ld.is-out{pointer-events:none}
+.ld.is-out .ld__panel{transform:translateY(-102%);border-radius:0 0 50% 50% / 0 0 12vh 12vh}
+.ld.is-out .ld__panel--back{transform:translateY(-106%)}
+/* هدر دقیقاً از همان خط طلایی لودر بیرون می‌آید */
+.hd{transform-origin:top center}
+.hd.is-docking .hd__bar{animation:dockBar 1.05s var(--ease-out) both}
+.hd.is-docking .hd__prog{animation:dockLine 1.15s var(--ease-out) both}
+@keyframes dockBar{
+  0%{opacity:0;transform:translateY(-26px) scaleX(.86);filter:blur(6px)}
+  60%{opacity:1;filter:blur(0)}
+  100%{opacity:1;transform:none}
+}
+@keyframes dockLine{
+  0%{opacity:0;transform:scaleX(.22)}
+  45%{opacity:1}
+  100%{opacity:1;transform:scaleX(1)}
+}
+body.is-loading{overflow:hidden}
+.ld{align-items:center}
+
+/* ====================== ۲. ANNOUNCEMENT ====================== */
+.ann{position:fixed;top:0;inset-inline:0;z-index:120;height:var(--ann-h);display:flex;align-items:center;
+  background:linear-gradient(90deg,#0e0c0a,#1b1613 40%,#0e0c0a);color:#d9cdb9;font-size:12px;
+  border-bottom:1px solid rgba(227,201,141,.14);
+  transition:transform .5s var(--ease),height .45s var(--ease),opacity .4s}
+.ann__inner{width:100%;display:flex;align-items:center;justify-content:space-between;gap:18px;padding-block:0}
+.ann__ticker{position:relative;height:22px;flex:1;overflow:hidden;max-width:100%;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent);
+          mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+.ann__slide{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:8px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:22px;
+  opacity:0;transform:translateY(120%);color:#e9dcc2;
+  animation:annCycle calc(var(--total, 4) * 4.6s) infinite;
+  animation-delay:calc(var(--i, 0) * 4.6s)}
+.ann__slide svg{width:13px;height:13px;color:#e3c98d;flex:none;opacity:.9}
+@keyframes annCycle{
+  0%{opacity:0;transform:translateY(115%)}
+  3%,21%{opacity:1;transform:translateY(0)}
+  24%,100%{opacity:0;transform:translateY(-115%)}
+}
+.ann__side{display:flex;align-items:center;gap:14px;color:#a99a86;white-space:nowrap}
+.ann__side a{transition:color .3s}
+.ann__side a:hover{color:#e3c98d}
+.ann__side .dot{width:3px;height:3px;border-radius:50%;background:#5b5044}
+.ann.is-hidden{transform:translateY(-100%)}
+@media(max-width:860px){.ann__ticker{max-width:none}.ann__side{display:none}}
+
+/* ====================== ۳. HEADER ====================== */
+.hd{position:fixed;top:var(--ann-h);inset-inline:0;z-index:110;padding:10px clamp(12px,2vw,22px);
+  transition:top .5s var(--ease)}
+.ann.is-hidden + .hd{top:0}
+.hd__wrap{max-width:1280px;margin-inline:auto;position:relative}
+.hd__bar{position:relative;display:flex;align-items:center;justify-content:space-between;gap:14px;
+  height:var(--hd-h);padding:0 10px 0 16px;border-radius:999px;
+  background:var(--glass);border:1px solid rgba(227,201,141,.16);
+  backdrop-filter:blur(20px) saturate(1.35);-webkit-backdrop-filter:blur(20px) saturate(1.35);
+  box-shadow:0 18px 40px -26px rgba(20,17,15,.85),inset 0 1px 0 rgba(255,255,255,.07);
+  transition:height .45s var(--ease),background .45s,box-shadow .45s,border-color .45s,transform .5s var(--ease)}
+.hd.is-scrolled .hd__bar{height:56px;background:var(--glass-2);border-color:rgba(227,201,141,.26);
+  box-shadow:0 22px 46px -26px rgba(20,17,15,.95),inset 0 1px 0 rgba(255,255,255,.08)}
+.hd__bar::before{content:"";position:absolute;inset:-1px;border-radius:inherit;pointer-events:none;
+  background:linear-gradient(120deg,rgba(227,201,141,.55),transparent 30%,transparent 70%,rgba(227,201,141,.35));
+  -webkit-mask:linear-gradient(#000,#000) content-box,linear-gradient(#000,#000);
+  -webkit-mask-composite:xor;
+          mask:linear-gradient(#000,#000) content-box,linear-gradient(#000,#000);
+          mask-composite:exclude;padding:1px;opacity:.7}
+
+/* brand */
+.hd__brand{display:flex;align-items:center;gap:11px;flex:none;padding:4px 6px;border-radius:99px;
+  transition:background .4s,transform .4s var(--ease)}
+.hd__brand:hover{background:rgba(255,255,255,.06)}
+.hd__mark{position:relative;width:42px;height:42px;border-radius:13px;display:grid;place-items:center;flex:none;
+  background:linear-gradient(150deg,#e3c98d,#b08f47 60%,#8d7238);color:#1a1408;
+  box-shadow:0 10px 22px -12px rgba(227,201,141,.8);transition:transform .55s var(--ease)}
+.hd__mark svg{width:22px;height:22px}
+.hd__brand:hover .hd__mark{transform:rotate(-10deg) scale(1.06)}
+.hd__mark-ring{position:absolute;inset:-6px;border-radius:17px;border:1px solid rgba(227,201,141,.35);
+  opacity:0;transform:scale(.85);transition:.5s var(--ease)}
+.hd__brand:hover .hd__mark-ring{opacity:1;transform:none}
+.hd__word{display:grid;line-height:1.15}
+.hd__word b{font-size:16.5px;font-weight:800;color:#f7f1e6;letter-spacing:.01em}
+.hd__word small{font-size:8.5px;letter-spacing:.26em;color:#9d9082;font-weight:600}
+/* وردمارک انیمیشنی PERANS در هدر */
+.hd__en{display:inline-flex;align-items:baseline;gap:.30em;direction:ltr;line-height:1;
+  margin-top:1px;letter-spacing:0}
+.hd__en i{font-style:normal;display:inline-block;color:#9d9082;
+  animation:hdEnWave 5.4s ease-in-out infinite;
+  animation-delay:calc(var(--n) * 160ms)}
+@keyframes hdEnWave{
+  0%,100%{color:#8e8272;transform:translateY(0)}
+  18%{color:#f0d8a4;transform:translateY(-1.5px);text-shadow:0 0 10px rgba(227,201,141,.55)}
+  40%{color:#9d9082;transform:translateY(0)}
+}
+.hd__brand:hover .hd__en i{animation-duration:2.2s}
+@media(prefers-reduced-motion:reduce){.hd__en i{animation:none!important;color:#b8ab99}}
+
+/* nav */
+.hd__nav{position:relative;display:flex;align-items:center;gap:2px;padding:5px;border-radius:999px;
+  background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.06)}
+.hd__nav a{position:relative;z-index:1;padding:9px 18px;border-radius:999px;font-size:13.5px;font-weight:600;
+  color:#c9bdab;white-space:nowrap;transition:color .35s;display:inline-flex;align-items:center;gap:6px}
+.hd__nav a svg{width:13px;height:13px;opacity:.65;transition:transform .35s}
+.hd__nav a:hover{color:#fff7e8}
+.hd__nav a.is-active{color:#1a1408}
+.hd__nav a.is-active svg{opacity:1}
+.hd__pill{position:absolute;top:5px;bottom:5px;inset-inline-start:5px;width:0;border-radius:999px;
+  background:linear-gradient(120deg,#e3c98d,#d7b877);box-shadow:0 6px 18px -8px rgba(227,201,141,.85);
+  transition:transform .55s var(--ease),width .55s var(--ease),opacity .3s;opacity:0;z-index:0}
+.hd__pill.on{opacity:1}
+
+/* actions */
+.hd__actions{display:flex;align-items:center;gap:6px;flex:none}
+.hd__icon{position:relative;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;
+  color:#e8dfd0;transition:background .35s,color .35s,transform .35s var(--ease)}
+.hd__icon svg{width:19px;height:19px}
+.hd__icon:hover{background:rgba(255,255,255,.1);color:#fff;transform:translateY(-2px)}
+.hd__icon .badge-count{position:absolute;top:2px;left:3px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;
+  background:linear-gradient(140deg,#e3c98d,#b08f47);color:#1a1408;font-size:10px;font-weight:800;
+  display:grid;place-items:center;transform:scale(0);transition:transform .35s var(--ease-out)}
+.hd__icon .badge-count.on{transform:scale(1)}
+.hd__cart-bump{animation:bump .5s var(--ease-out)}
+@keyframes bump{0%{transform:scale(1)}35%{transform:scale(1.28)}100%{transform:scale(1)}}
+
+.hd__cta{position:relative;display:inline-flex;align-items:center;gap:8px;overflow:hidden;
+  padding:11px 18px;border-radius:999px;font-size:12.5px;font-weight:800;color:#1a1408;
+  background:linear-gradient(120deg,#f0d9a6,#d7b877 45%,#c2a35c);margin-inline-start:6px;
+  box-shadow:0 12px 26px -14px rgba(194,163,92,.9);transition:transform .4s var(--ease),box-shadow .4s}
+.hd__cta svg{width:15px;height:15px}
+.hd__cta::after{content:"";position:absolute;inset:0;transform:translateX(-130%);
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.65),transparent);
+  transition:transform .8s var(--ease)}
+.hd__cta:hover{transform:translateY(-2px);box-shadow:0 18px 34px -14px rgba(194,163,92,.95)}
+.hd__cta:hover::after{transform:translateX(130%)}
+.hd__cta span{position:relative}
+.hd__cta svg{position:relative}
+
+.hd__burger{display:none;width:42px;height:42px;border-radius:50%;place-items:center;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1)}
+.hd__burger i{display:block;width:17px;height:1.7px;border-radius:2px;background:#f0e7d8;transition:.4s var(--ease)}
+.hd__burger i+i{margin-top:5px;width:11px;margin-inline-start:auto}
+.hd__burger:hover i+i{width:17px}
+.hd__burger.is-on i:first-child{transform:translateY(3.4px) rotate(45deg)}
+.hd__burger.is-on i:last-child{width:17px;transform:translateY(-3.4px) rotate(-45deg)}
+
+/* progress line */
+.hd__prog{position:absolute;bottom:-1px;inset-inline:0;height:2px;border-radius:2px;overflow:hidden;
+  background:rgba(255,255,255,.06)}
+.hd__prog i{display:block;height:100%;width:0;
+  background:linear-gradient(90deg,#a4843f,#e3c98d,#fff3d4);box-shadow:0 0 12px rgba(227,201,141,.8);
+  transition:width .12s linear}
+
+
+@media(max-width:520px){
+  .hd__word small{display:none}
+  .hd__word b{font-size:15px}
+  .hd__mark{width:38px;height:38px;border-radius:12px}
+  .hd__bar{padding:0 8px 0 12px;gap:8px}
+  .hd__icon{width:36px;height:36px}
+  .hd__cta{display:none}
+}
+
+/* ====================== ۴. MEGA MENU ====================== */
+.hd__mega{position:absolute;top:calc(100% + 12px);inset-inline:0;z-index:5;
+  background:var(--glass-2);border:1px solid rgba(227,201,141,.18);border-radius:26px;
+  padding:18px;display:grid;grid-template-columns:1.55fr .95fr;gap:16px;
+  backdrop-filter:blur(24px) saturate(1.3);-webkit-backdrop-filter:blur(24px) saturate(1.3);
+  box-shadow:0 40px 80px -40px rgba(0,0,0,.9);
+  opacity:0;visibility:hidden;transform:translateY(-10px) scale(.985);transform-origin:top center;
+  transition:opacity .35s var(--ease),transform .45s var(--ease),visibility .35s}
+.hd__mega.on{opacity:1;visibility:visible;transform:none}
+.mega__cats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mega__cat{display:flex;align-items:center;gap:11px;padding:10px;border-radius:16px;
+  border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.03);
+  transition:background .35s,transform .35s var(--ease),border-color .35s}
+.mega__cat:hover{background:rgba(227,201,141,.12);border-color:rgba(227,201,141,.3);transform:translateY(-2px)}
+.mega__cat img{width:46px;height:46px;border-radius:12px;object-fit:cover;flex:none}
+.mega__cat b{display:block;font-size:13px;color:#f7f1e6;font-weight:700}
+.mega__cat small{display:block;font-size:10.5px;color:#9d9082;margin-top:2px}
+.mega__cat span.arr{margin-inline-start:auto;color:#e3c98d;opacity:0;transform:translateX(-6px);transition:.35s}
+.mega__cat:hover span.arr{opacity:1;transform:none}
+.mega__cat span.arr svg{width:15px;height:15px}
+.mega__promo{position:relative;border-radius:18px;overflow:hidden;min-height:190px;display:flex;align-items:flex-end;
+  padding:16px;isolation:isolate}
+.mega__promo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;
+  transition:transform 1s var(--ease-out)}
+.mega__promo:hover img{transform:scale(1.07)}
+.mega__promo::after{content:"";position:absolute;inset:0;z-index:-1;
+  background:linear-gradient(to top,rgba(14,12,10,.92),rgba(14,12,10,.15) 60%,transparent)}
+.mega__promo b{display:block;color:#fff;font-size:15px;line-height:1.5}
+.mega__promo small{display:block;color:#cbbca4;font-size:11.5px;margin-top:3px}
+.mega__promo .btn{margin-top:10px;padding:9px 15px;font-size:11.5px}
+
+
+/* ====================== ۵. MOBILE MENU ====================== */
+.mmenu{position:fixed;inset:0;z-index:150;display:flex;flex-direction:column;justify-content:center;
+  padding:clamp(20px,6vw,54px);color:#f6efe2;
+  background:
+    radial-gradient(80% 60% at 90% 0%,rgba(194,163,92,.22),transparent 60%),
+    radial-gradient(70% 60% at 0% 100%,rgba(18,63,52,.28),transparent 60%),
+    linear-gradient(160deg,#141110,#0d0b0a);
+  clip-path:circle(0% at 8% 6%);visibility:hidden;
+  transition:clip-path .85s var(--ease-out),visibility .85s}
+.mmenu.open{clip-path:circle(150% at 8% 6%);visibility:visible}
+.mmenu__top{position:absolute;top:22px;inset-inline:22px;display:flex;align-items:center;justify-content:space-between}
+.mmenu__close{width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.16);
+  display:grid;place-items:center;transition:.35s}
+.mmenu__close:hover{background:rgba(255,255,255,.1);transform:rotate(90deg)}
+.mmenu__close svg{width:18px;height:18px}
+.mmenu__tag{font-size:10.5px;letter-spacing:.3em;color:#a99a86}
+.mmenu nav{display:grid;gap:0;margin-bottom:22px}
+.mmenu nav a{display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:13px 0;
+  border-bottom:1px solid rgba(255,255,255,.08);font-size:clamp(22px,6.4vw,30px);font-weight:800;
+  opacity:0;transform:translateY(18px);
+  transition:opacity .55s var(--ease-out),transform .55s var(--ease-out),color .3s}
+.mmenu.open nav a{opacity:1;transform:none}
+.mmenu nav a:hover{color:#e3c98d}
+.mmenu nav a span{font-size:11px;color:#8d8172;font-weight:600;letter-spacing:.1em}
+.mmenu__chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:20px}
+.mmenu__chips a{padding:8px 13px;border-radius:99px;border:1px solid rgba(255,255,255,.12);
+  font-size:11.5px;color:#cbbca4;transition:.3s}
+.mmenu__chips a:hover{background:rgba(227,201,141,.16);border-color:rgba(227,201,141,.4);color:#fff}
+.mmenu__foot{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;font-size:12px;color:#a99a86;
+  border-top:1px solid rgba(255,255,255,.08);padding-top:16px}
+.mmenu__foot a{color:#e3c98d;font-weight:700}
+
+/* ۶. FOOTER → به css/footer.css منتقل شد (نسخه‌ی ۲) */
+
+/* ====================== ۷. CURSOR ====================== */
+.cur,.cur-dot{position:fixed;top:0;left:0;z-index:9999;pointer-events:none;border-radius:50%;
+  transform:translate3d(-50%,-50%,0);opacity:0;transition:opacity .35s}
+.cur{width:34px;height:34px;border:1px solid rgba(164,132,63,.65);transition:opacity .35s,width .3s var(--ease),height .3s var(--ease),background .3s,border-color .3s}
+.cur-dot{width:5px;height:5px;background:#a4843f}
+html.has-cur .cur,html.has-cur .cur-dot{opacity:1}
+html.has-cur.hide-cur,html.has-cur.hide-cur *{cursor:none!important}
+html.has-cur input,html.has-cur textarea{cursor:text!important}
+.cur.is-hot{width:56px;height:56px;background:rgba(194,163,92,.16);border-color:rgba(164,132,63,.9)}
+.cur.is-dark{border-color:rgba(247,241,230,.6)}
+.cur.is-dark.is-hot{background:rgba(247,241,230,.12)}
+
+/* ====================== ۸. EFFECTS ====================== */
+/* dust particles in hero */
+.hero__dust{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.hero__dust i{position:absolute;width:4px;height:4px;border-radius:50%;background:radial-gradient(circle,#e3c98d,transparent 70%);
+  opacity:.5;animation:dustFloat linear infinite}
+@keyframes dustFloat{0%{transform:translateY(20px) scale(.6);opacity:0}
+  12%{opacity:.7}88%{opacity:.5}100%{transform:translateY(-140px) scale(1.15);opacity:0}}
+
+/* shine sweep on gold buttons */
+.btn-gold{position:relative;overflow:hidden}
+.btn-gold::after{content:"";position:absolute;inset:0;transform:translateX(-140%) skewX(-14deg);
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transition:transform .85s var(--ease)}
+.btn-gold:hover::after{transform:translateX(140%) skewX(-14deg)}
+
+/* card tilt + glare */
+.card{transform-style:preserve-3d;will-change:transform}
+.card__glare{position:absolute;inset:0;z-index:3;pointer-events:none;border-radius:inherit;opacity:0;
+  background:radial-gradient(320px circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.34),transparent 55%);
+  transition:opacity .4s}
+.card:hover .card__glare{opacity:1}
+.card-media::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(120deg,rgba(194,163,92,.28),transparent 42%);opacity:0;transition:opacity .5s}
+.card:hover .card-media::after{opacity:1}
+
+/* route curtain */
+.curtain{position:fixed;inset:0;z-index:300;pointer-events:none;display:grid;place-items:center;
+  background:linear-gradient(160deg,#141110,#0e0c0a);clip-path:inset(0 0 100% 0);visibility:hidden}
+.curtain.on{visibility:visible;animation:curtainSweep 1s var(--ease-out) forwards}
+@keyframes curtainSweep{
+  0%{clip-path:inset(0 0 100% 0);opacity:1}
+  45%{clip-path:inset(0 0 0 0);opacity:1}
+  55%{clip-path:inset(0 0 0 0);opacity:1}
+  100%{clip-path:inset(100% 0 0 0);opacity:0}
+}
+.curtain span{font-size:clamp(20px,3vw,34px);font-weight:900;color:#e3c98d;letter-spacing:.3em;opacity:.9}
+
+/* generic magnetic */
+[data-magnetic]{will-change:transform}
+
+/* page view transition */
+.view.active{animation:viewIn .6s var(--ease-out)}
+
+/* scrollbar */
+::-webkit-scrollbar{width:10px}
+::-webkit-scrollbar-track{background:#efe7d7}
+::-webkit-scrollbar-thumb{background:linear-gradient(#c2a35c,#a4843f);border-radius:10px;border:2px solid #efe7d7}
+::-webkit-scrollbar-thumb:hover{background:#8d7238}
+
+/* focus ring on dark surfaces */
+.hd a:focus-visible,.hd button:focus-visible,.ft a:focus-visible,.ft button:focus-visible{
+  outline:2px solid #e3c98d;outline-offset:3px}
+
+/* keep hero clear of fixed header */
+main{padding-top:calc(var(--ann-h) + var(--hd-h) + 34px)}
+@media(max-width:860px){main{padding-top:calc(var(--ann-h) + var(--hd-h) + 22px)}}
+.page-head{padding-top:clamp(18px,3vw,32px)}
+
+/* old bits no longer used */
+#toTop{z-index:80}
+
+@media (prefers-reduced-motion:reduce){
+  .ld__blob,.ld__spin,.ld__ring,.hero__dust i,.ft__track,.marquee-track,.ann__slide{animation:none!important}
+  .cur,.cur-dot{display:none}
+}
+
+/* ==========================================================================
+   ۹. RESPONSIVE HEADER — همان هدر دسکتاپ، فقط کوچک‌تر (بدون منوی همبرگری)
+   ========================================================================== */
+.hd__nav .lbl-short{display:none}
+.hd__nav a{display:inline-flex;align-items:center;gap:5px}
+
+/* هدر تک‌نسخه‌ای: ناوبری در همه‌ی اندازه‌ها دیده می‌شود */
+@media(max-width:1180px){
+  .hd__nav{display:flex}
+  .hd__burger{display:none!important}
+  .hd__bar{padding:0 8px 0 12px}
+  .hd__nav a{padding:8px 12px;font-size:12.5px}
+  .hd__cta{padding:9px 14px;font-size:11.5px}
+  .hd__icon{width:36px;height:36px}
+}
+@media(max-width:1024px){
+  .hd__cta{display:none}
+  .hd__nav a{padding:8px 11px;font-size:12px}
+  .nav-caret{display:none}
+  .hd__nav{gap:0;padding:4px}
+}
+@media(max-width:820px){
+  .hd__icon--wish{display:none}
+  .hd__word small{display:inline-flex;font-size:7.5px}
+  .hd__nav a{padding:7px 9px}
+}
+@media(max-width:700px){
+  :root{--hd-h:54px}
+  .hd{padding:8px 10px}
+  .hd__bar{padding:0 6px 0 8px;gap:6px}
+  .hd__mark{width:34px;height:34px;border-radius:10px}
+  .hd__mark svg{width:18px;height:18px}
+  .hd__word b{font-size:13.5px}
+  .hd__nav{padding:3px;background:rgba(255,255,255,.035)}
+  .hd__nav a{padding:7px 7px;font-size:11.5px;font-weight:600}
+  .hd__nav a .lbl-full{display:none}
+  .hd__nav a .lbl-short{display:inline}
+  .hd__icon{width:32px;height:32px;border-radius:11px}
+  .hd__icon svg{width:17px;height:17px}
+  .hd__actions{gap:1px}
+  .hd__prog{height:1.5px}
+  .ann{font-size:10.5px}
+  .ann__slide{gap:6px}
+  .ann__slide svg{width:11px;height:11px}
+}
+@media(max-width:480px){
+  .hd{padding:7px 8px}
+  .hd__word b{font-size:12.5px}
+  .hd__en{font-size:7px}
+  .hd__nav a{padding:7px 6px;font-size:11px}
+  .hd__bar{gap:4px}
+  .hd__icon{width:30px;height:30px}
+  .hd__icon svg{width:16px;height:16px}
+  .hd__icon .badge-count{top:-1px;left:-1px;min-width:15px;height:15px;font-size:9px}
+}
+@media(max-width:365px){
+  .hd__nav a{padding:6px 5px;font-size:10.5px}
+  #searchBtn{display:none}
+}
+
+/* keep pages clear of the fixed bars (fixed bars don't take layout space) */
+main{padding-top:calc(var(--ann-h) + var(--hd-h) + 10px)}
+@media(max-width:860px){
+  :root{--ann-h:34px}
+  main{padding-top:calc(var(--ann-h) + var(--hd-h) + 6px)}
+}
+
+/* ==========================================================================
+   ۱۰. HERO — «واااو» اولیه: شفق رنگی، کارت‌های شناور، درخشش قوس
+   ========================================================================== */
+.hero-aurora{position:absolute;inset:-10% -5% auto -5%;height:130%;z-index:0;pointer-events:none;overflow:hidden}
+.aurora{position:absolute;border-radius:50%;filter:blur(70px);opacity:.55;mix-blend-mode:normal}
+.aurora.a1{width:52vw;height:52vw;max-width:680px;max-height:680px;top:-16%;inset-inline-start:6%;
+  background:radial-gradient(circle,rgba(227,201,141,.55),transparent 66%);animation:auroraA 16s ease-in-out infinite alternate}
+.aurora.a2{width:46vw;height:46vw;max-width:600px;max-height:600px;top:8%;inset-inline-end:-6%;
+  background:radial-gradient(circle,rgba(18,63,52,.34),transparent 68%);animation:auroraB 20s ease-in-out infinite alternate}
+.aurora.a3{width:36vw;height:36vw;max-width:480px;max-height:480px;bottom:-14%;inset-inline-start:34%;
+  background:radial-gradient(circle,rgba(194,163,92,.32),transparent 70%);animation:auroraA 24s ease-in-out infinite alternate-reverse}
+@keyframes auroraA{to{transform:translate3d(4vw,-3vh,0) scale(1.14)}}
+@keyframes auroraB{to{transform:translate3d(-5vw,4vh,0) scale(1.1)}}
+/* واترمارک نباید فضای جریان بگیرد — فقط پس‌زمینه‌ی تزئینی است */
+.hero-grid,.scroll-hint{position:relative;z-index:2}
+.hero-watermark{position:absolute;z-index:0;inset-inline-start:-2%;top:2%;pointer-events:none}
+
+.arch-shine{position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:inherit;
+  background:linear-gradient(115deg,transparent 34%,rgba(255,255,255,.42) 46%,transparent 58%);
+  transform:translateX(-120%);animation:archShine 7.5s var(--ease) 1.6s infinite}
+@keyframes archShine{0%{transform:translateX(-120%)}55%,100%{transform:translateX(120%)}}
+
+/* مینی‌کارت‌های محصولات روی تصویر هیرو */
+.hero-mini{position:absolute;z-index:4;display:flex;align-items:center;gap:9px;padding:8px 10px 8px 8px;
+  border-radius:16px;background:rgba(255,253,249,.94);backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.8);box-shadow:0 22px 48px -26px rgba(45,32,14,.65);
+  animation:miniFloat 6.5s ease-in-out infinite}
+.hero-mini img{width:44px;height:44px;border-radius:11px;object-fit:cover;flex:none}
+.hero-mini b{display:block;font-size:12.5px;line-height:1.5}
+.hero-mini small{display:block;font-size:10.5px;color:var(--gold-dp);font-weight:800;letter-spacing:.02em}
+.hm-1{bottom:30%;inset-inline-start:-26px;animation-delay:.6s}
+
+@keyframes miniFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+@media(max-width:1120px){.hero-mini{display:none}}
+
+/* ==========================================================================
+   ۱۱. CONTACT DEEP-LINK HIGHLIGHT
+   ========================================================================== */
+.is-flash{animation:flashRing 1.8s var(--ease-out)}
+@keyframes flashRing{
+  0%{box-shadow:0 0 0 0 rgba(194,163,92,.55),var(--shadow-s)}
+  35%{box-shadow:0 0 0 8px rgba(194,163,92,.18),var(--shadow-m)}
+  100%{box-shadow:var(--shadow-s)}
+}
+.acc-item.is-flash{background:rgba(194,163,92,.10);border-radius:14px;padding-inline:12px;
+  transition:background 1.6s var(--ease)}
+
+/* ==========================================================================
+   ۱۲. FIXES ریسپانسیو عمومی
+   ========================================================================== */
+@media(max-width:900px){
+  .hero-grid{min-height:0;gap:22px}
+  .hero{padding-block:6px clamp(30px,6vw,48px)}
+  .hero h1{margin-top:14px}
+  .sec-head{margin-bottom:clamp(20px,4vw,32px)}
+  .h-sec{font-size:clamp(22px,5.2vw,32px)}
+  .hero{padding-block:8px clamp(34px,7vw,56px)}
+  .hero h1{font-size:clamp(30px,9vw,46px);line-height:1.16}
+  .hero .lead{font-size:14.5px;line-height:2}
+  .hero-cta .btn{flex:1;min-width:140px;justify-content:center}
+  .hero-stats{gap:16px 22px;margin-top:26px;padding-top:18px}
+  .hero-stats b{font-size:21px}
+  .hero-stats span{font-size:10.5px}
+  .arch{aspect-ratio:4/3.6;border-radius:170px 170px 20px 20px}
+  .section{padding-block:clamp(40px,7vw,64px)}
+  .story-media .sub{display:none}
+  .cta-band{padding:24px 20px;border-radius:22px;text-align:center}
+  .cta-band .cta-actions{justify-content:center}
+  .cta-band p{margin-inline:auto;font-size:13px}
+  .ft__word{font-size:clamp(38px,13vw,90px)}
+  .panel{padding:18px}
+  .contact-grid{gap:16px}
+  .pd-grid{gap:22px}
+  .pd-media{border-radius:22px}
+  .page-head h1{font-size:clamp(24px,6.4vw,34px)}
+  .page-head p{font-size:13.5px}
+  .two{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  .wrap{padding-inline:14px}
+  .hero h1{font-size:clamp(27px,9.6vw,38px)}
+  .hero-badge{font-size:11px;padding:7px 13px 7px 10px}
+  .hero-cta{gap:8px;margin-top:22px}
+  .hero-cta .btn{padding:13px 16px;font-size:13px}
+  .hero-watermark{font-size:min(32vw,170px);top:-2%;opacity:.85}
+  .cats{gap:12px}
+  .cat{aspect-ratio:4/3.1;border-radius:20px}
+  .cat-body{padding:14px}
+  .cat-body b{font-size:15px}
+  .cat-body small{font-size:10px}
+  .grid-products{gap:12px}
+  .chips{gap:6px}
+  .chip{padding:8px 13px;font-size:11.5px}
+  .feat{padding:20px 18px}
+  .look-grid{grid-auto-rows:150px;gap:10px}
+  .quote p{font-size:16px;line-height:1.95}
+  .quotes{min-height:auto}
+  .cta-code{font-size:11.5px}
+  .modal-body{padding:18px}
+  .steps{padding:16px 18px 0;font-size:11px}
+  .drawer{width:100%}
+  .drawer-head{padding:16px 16px 14px}
+  .citem img{width:66px;height:66px}
+  .ft__word{padding-top:6px}
+  .pd-price b{font-size:24px}
+  .pd-actions .btn{min-width:0}
+  .search-bar input{font-size:17px}
+  .s-hint{font-size:11px}
+  #toTop{width:42px;height:42px}
+}
+@media(max-width:400px){
+  .hero-stats{display:grid;grid-template-columns:1fr 1fr;gap:14px 12px}
+  .hero-stats b{font-size:19px}
+  .grid-products{grid-template-columns:1fr 1fr;gap:10px}
+  .card-body{padding:11px 12px 13px}
+  .card-name{font-size:12.5px}
+  .price{font-size:13.5px}
+  .price small{font-size:9.5px}
+  .card-cat{font-size:9.5px}
+  .card-rate{font-size:9.5px}
+  .card-rate .stars svg{width:10px;height:10px}
+  .card-rev{display:none}
+  .card-badge{font-size:9px;padding:3px 7px}
+  .quick{display:none}
+  .cat{aspect-ratio:4/3.4}
+}
+
+/* ناوبری همیشه دیده می‌شود (نسخه‌ی موبایل = همان هدر، کوچک‌تر) */
+.hd__nav{display:flex!important}
+.hd__burger{display:none!important}
+@media(max-width:1120px){.hd__mega{display:grid}}
+@media(max-width:820px){.hd__mega{grid-template-columns:1fr;max-height:60vh;overflow:auto}}
+
+
+/* ==========================================================================
+   ۱۳. مگامنو در موبایل — همان منو، خوانا و تمام‌عرض
+   ========================================================================== */
+@media(max-width:900px){
+  .hd__mega{grid-template-columns:1fr;gap:0;padding:10px;border-radius:20px;
+    background:#14110f;backdrop-filter:blur(18px);max-height:64vh;overflow-y:auto;
+    border-color:rgba(227,201,141,.28)}
+  .mega__cats{grid-template-columns:1fr;gap:6px}
+  .mega__cat{padding:8px 10px;border-radius:14px;background:rgba(255,255,255,.045)}
+  .mega__cat img{width:40px;height:40px;border-radius:10px}
+  .mega__cat b{font-size:12.5px}
+  .mega__cat small{font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mega__cat span.arr{opacity:1;transform:none}
+  .mega__promo{display:none}
+}
+
+/* فاصله‌ی محتوا از هدر چسبان — دقیق و بدون شکاف */
+main{padding-top:calc(var(--ann-h) + var(--hd-h) + 6px)!important}
+@media(max-width:900px){
+  main{padding-top:calc(var(--ann-h) + var(--hd-h) + 26px)!important}
+  /* هدر شناور است و ارتفاع واقعی‌اش بیشتر از متغیر است؛ این فاصله تضمین می‌کند محتوا زیرش نرود */
+  .hero{padding-top:0}
+  .hero-cta{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .hero-cta .btn{width:100%}
+}
+
+/* پیل طلایی روی آیتم هاور — متن تیره بماند */
+.hd__nav a.is-hovered{color:#1a1408}
+.hd__nav a.is-hovered svg{opacity:1}
+
+@media(max-width:600px){
+  .ft__ribbon{padding:9px 0}
+  .ft__track span{font-size:10px;padding-inline:12px;gap:9px}
+  .ft__word{font-size:clamp(34px,12vw,64px);padding-bottom:6px}
+  .ft__pays span{font-size:9px;padding:4px 8px}
+}
+
+/* واترمارک PERANS در هیرو هم آرام نفس می‌کشد */
+.hero-watermark{animation:wmDrift 22s ease-in-out infinite alternate}
+@keyframes wmDrift{
+  from{transform:translate3d(0,0,0);-webkit-text-stroke-color:rgba(20,17,15,.035)}
+  to{transform:translate3d(-1.6%,-7px,0);-webkit-text-stroke-color:rgba(194,163,92,.16)}
+}
+@media(prefers-reduced-motion:reduce){.hero-watermark{animation:none}}
+
+
+/* ==========================================================================
+   ۱۴. HERO RICHER — جرقه‌ها، مهر چرخان، نوار تصاویر، پیل‌های اعتماد
+   ========================================================================== */
+.hero-sparks{position:absolute;inset:0;z-index:1;pointer-events:none}
+.hero-sparks i{position:absolute;left:var(--x);top:var(--y);width:calc(6px * var(--s));height:calc(6px * var(--s));
+  border-radius:50%;background:radial-gradient(circle,rgba(227,201,141,.95),rgba(194,163,92,.15) 70%,transparent);
+  opacity:0;animation:sparkFloat 7.5s ease-in-out var(--d) infinite}
+@keyframes sparkFloat{
+  0%{opacity:0;transform:translate3d(0,14px,0) scale(.5)}
+  22%{opacity:.85}
+  70%{opacity:.35}
+  100%{opacity:0;transform:translate3d(-18px,-46px,0) scale(1.15)}
+}
+
+.hero-trust{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px;list-style:none;padding:0;
+  opacity:0;animation:fadeUp .9s var(--ease-out) .8s forwards}
+.hero-trust li{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;
+  background:rgba(255,255,255,.62);border:1px solid rgba(164,132,63,.22);
+  font-size:11.5px;font-weight:700;color:#4a4139;backdrop-filter:blur(8px)}
+.hero-trust svg{width:13px;height:13px;color:var(--gold-dp);flex:none}
+
+/* مهر چرخان */
+.seal{position:absolute;z-index:6;top:7%;inset-inline-end:-30px;width:118px;height:118px;display:grid;
+  place-items:center;border-radius:50%;background:rgba(20,17,15,.86);backdrop-filter:blur(12px);
+  border:1px solid rgba(227,201,141,.35);box-shadow:0 20px 44px -22px rgba(20,17,15,.6);
+  transition:transform .5s var(--ease-out),border-color .5s}
+.seal:hover{transform:scale(1.07) rotate(-4deg);border-color:rgba(227,201,141,.7)}
+.seal > svg{position:absolute;inset:0;width:100%;height:100%;animation:sealSpin 26s linear infinite}
+.seal-ring text{fill:#e3c98d;font-size:9.2px;font-weight:700;letter-spacing:.16em;direction:ltr}
+.seal-core{position:relative;z-index:2;width:44px;height:44px;display:grid;place-items:center;border-radius:50%;
+  background:linear-gradient(150deg,#e3c98d,#b7934e);color:#241b0d;box-shadow:0 8px 18px -8px rgba(0,0,0,.7)}
+.seal-core svg{width:22px;height:22px}
+@keyframes sealSpin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.seal > svg{animation:none}.hero-sparks{display:none}}
+
+/* برچسب موجودی روی قوس */
+.arch-tag{position:absolute;z-index:4;bottom:14px;inset-inline-start:14px;display:inline-flex;align-items:center;gap:7px;
+  padding:7px 12px;border-radius:999px;background:rgba(20,17,15,.62);backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,.16);color:#f4ecdd;font-size:11px;font-weight:700}
+.arch-tag i{width:6px;height:6px;border-radius:50%;background:#4ad08a;box-shadow:0 0 0 4px rgba(74,208,138,.18);
+  animation:tagPulse 2.4s ease-in-out infinite}
+@keyframes tagPulse{0%,100%{box-shadow:0 0 0 3px rgba(74,208,138,.16)}50%{box-shadow:0 0 0 7px rgba(74,208,138,.05)}}
+
+/* نوار تصاویر هیرو */
+.hero-thumbs{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:9px;margin-top:16px;position:relative;z-index:5}
+.hero-thumb{width:56px;height:56px;flex:none;border-radius:15px;overflow:hidden;padding:0;cursor:pointer;
+  border:1px solid rgba(164,132,63,.28);background:var(--sand);
+  transition:transform .45s var(--ease-out),border-color .4s,box-shadow .4s;position:relative}
+.hero-thumb img{width:100%;height:100%;object-fit:cover;transition:transform .6s var(--ease-out)}
+.hero-thumb:hover{transform:translateY(-3px);border-color:rgba(164,132,63,.6)}
+.hero-thumb:hover img{transform:scale(1.09)}
+.hero-thumb.on{border-color:transparent;box-shadow:0 0 0 2px var(--gold-dp),0 12px 24px -14px rgba(20,17,15,.5)}
+.hero-thumb.on::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(20,17,15,.28))}
+.hero-thumbs-cap{font-size:11.5px;font-weight:700;color:var(--muted);margin-inline-end:10px;flex:none;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .3s}
+#heroShot{transition:opacity .28s var(--ease),transform 1.4s var(--ease-out)}
+#heroShot.is-swapping{opacity:.18;transform:scale(1.04)}
+
+@media(max-width:1120px){
+  .seal{width:96px;height:96px;inset-inline-end:-14px;top:4%}
+  .seal-core{width:36px;height:36px}
+  .seal-core svg{width:18px;height:18px}
+  .seal-ring text{font-size:10px}
+}
+@media(max-width:900px){
+  .hero-rail{display:none}
+  .hero-visual{margin-top:6px}
+  .seal{width:84px;height:84px;inset-inline-end:auto;inset-inline-start:8px;top:-16px}
+  .arch-tag{font-size:10px;padding:6px 10px;bottom:10px;inset-inline-start:10px}
+  .hero-thumbs{margin-top:12px;gap:7px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+  .hero-thumbs::-webkit-scrollbar{display:none}
+  .hero-thumb{width:48px;height:48px;border-radius:13px}
+  .hero-thumbs-cap{font-size:10.5px}
+  .hero-trust{gap:6px;margin-top:14px}
+  .hero-trust li{font-size:10.5px;padding:5px 9px}
+  .float-card{display:none}
+  .hero-mini{display:flex}
+  .hm-1{bottom:26%;inset-inline-start:-6px;padding:6px 8px 6px 6px;border-radius:13px}
+  
+  .hero-mini img{width:34px;height:34px;border-radius:9px}
+  .hero-mini b{font-size:11px}
+  .hero-mini small{font-size:9.5px}
+}
+@media(max-width:400px){
+  
+  .seal{width:70px;height:70px;top:-12px}
+  .seal-core{width:30px;height:30px}
+  .seal-core svg{width:15px;height:15px}
+  .seal-ring text{font-size:8.6px}
+}
+
+
+/* ==========================================================================
+   ۱۵. دکمه‌ی ورود مدیران (هدر و فوتر)
+   ========================================================================== */
+.hd__icon--admin{position:relative;color:#e3c98d}
+.hd__icon--admin::after{content:"";position:absolute;inset-inline-start:-5px;top:20%;height:60%;width:1px;
+  background:rgba(255,255,255,.14)}
+.hd__icon--admin:hover{color:#241b0d;background:linear-gradient(150deg,var(--gold-lt),var(--gold-dp))}
+/* .ft__admin → css/footer.css */
+@media(max-width:700px){
+  .hd__icon--admin{width:32px;height:32px}
+}
+
+
+/* ==========================================================================
+   ۱۶. شماره‌ها: همیشه چپ‌به‌راست (اصلاح معکوس‌شدن ارقام در متن فارسی)
+   ========================================================================== */
+a[href^="tel:"],[data-cms="phone"],.tel,.coord{direction:ltr;unicode-bidi:isolate}
+a[href^="tel:"]{display:inline-block}
+bdi[dir="ltr"]{unicode-bidi:isolate;direction:ltr}
+
+
+/* ==========================================================================
+   ۱۷. هیرو غنی‌تر — پیل‌های دسته + نشانگر اسکرول
+   ========================================================================== */
+.hero-cats{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin-top:16px;
+  opacity:0;animation:fadeUp .9s var(--ease-out) .72s forwards}
+.hero-cats__label{font-size:11px;font-weight:800;color:var(--muted);margin-inline-end:4px}
+.hero-cats a{display:inline-flex;align-items:center;padding:6px 12px;border-radius:99px;font-size:11.5px;font-weight:700;
+  color:var(--ink-2);background:rgba(255,255,255,.7);border:1px solid rgba(164,132,63,.26);
+  transition:transform .3s var(--ease-out),background .3s,color .3s,border-color .3s,box-shadow .3s}
+.hero-cats a:hover{background:var(--emerald);color:#f4ecdd;border-color:var(--emerald);
+  transform:translateY(-2px);box-shadow:0 12px 22px -14px rgba(18,63,52,.8)}
+.hero-cats a::before{content:"";width:4px;height:4px;border-radius:50%;background:var(--gold);margin-inline-end:6px;transition:background .3s}
+.hero-cats a:hover::before{background:var(--gold-lt)}
+
+@media(max-width:900px){
+  .hero-cats{margin-top:12px;gap:6px}
+  .hero-cats__label{width:100%;margin-bottom:2px}
+  .hero-cats a{font-size:10.5px;padding:5px 10px}
+}
+
+/* ==========================================================================
+   ۱۸. کارت شعبهٔ مرکزی + مختصات
+   ========================================================================== */
+.branch{margin-top:16px;padding:16px;border-radius:18px;background:linear-gradient(160deg,#123f34,#0c2c25);
+  color:#eee4d3;box-shadow:0 24px 44px -30px rgba(18,63,52,.9);position:relative;overflow:hidden}
+.branch::after{content:"";position:absolute;inset-inline-end:-30%;top:-40%;width:70%;height:120%;border-radius:50%;
+  background:radial-gradient(circle,rgba(227,201,141,.16),transparent 70%);pointer-events:none}
+.branch__head{display:flex;align-items:center;gap:10px;margin-bottom:12px;position:relative;z-index:1}
+.branch__ico{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;flex:none;
+  background:linear-gradient(150deg,var(--gold-lt),var(--gold-dp));color:#241b0d}
+.branch__ico svg{width:17px;height:17px}
+.branch__head b{display:block;font-size:13.5px;font-weight:900}
+.branch__head small{display:block;font-size:11px;color:#a9c0b2;margin-top:1px}
+.branch__rows{list-style:none;margin:0;padding:0;display:grid;gap:8px;position:relative;z-index:1}
+.branch__rows li{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding-bottom:8px;border-bottom:1px dashed rgba(255,255,255,.12);font-size:12px}
+.branch__rows li:last-child{border-bottom:0;padding-bottom:0}
+.branch__rows span{color:#9db4a8;flex:none;font-size:11px}
+.branch__rows b{font-weight:700;color:#f2e8d7;text-align:end}
+.branch__rows b a{color:#f2e8d7}
+.branch__rows b a:hover{color:var(--gold-lt)}
+.branch__rows .coord{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;letter-spacing:.02em;
+  direction:ltr;unicode-bidi:isolate;color:#f0dcae}
+.branch__acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px;position:relative;z-index:1}
+.branch__acts .btn{flex:1;min-width:130px;font-size:11.5px;padding:10px 12px}
+.branch__acts .btn-dark{background:rgba(255,255,255,.12);color:#f4ecdd;border:1px solid rgba(255,255,255,.18)}
+.branch__acts .btn-dark:hover{background:linear-gradient(150deg,var(--gold-lt),var(--gold-dp));color:#241b0d;border-color:transparent}
+.branch__acts .btn-ghost{border-color:rgba(255,255,255,.22);color:#e6d9c2}
+.branch__acts .btn-ghost:hover{background:rgba(255,255,255,.1);color:#fff}
+
+/* ==========================================================================
+   ۱۹. جلای بیشتر هدر
+   ========================================================================== */
+/* درخشش هدر به css/header.css منتقل شد (لایه‌ی .hd__shine، بدون بریدگی مگامنو) */
+.hd__brand:hover .hd__mark{transform:rotate(-6deg) scale(1.06);box-shadow:0 12px 26px -12px rgba(227,201,141,.7)}
+.hd__mark{transition:transform .5s var(--ease-out),box-shadow .4s}
+.hd__nav a{position:relative;z-index:1}
+.hd__icon{transition:background .3s,color .3s,transform .3s var(--ease-out),box-shadow .3s}
+.hd__icon:hover{transform:translateY(-2px)}
+
+
+/* اصلاح: متن نوار بالا وسط‌چین و بدون بریدگی */
+@media(min-width:861px){
+  .ann__inner{gap:22px}
+  .ann__ticker{max-width:56%;margin-inline:auto}
+  .ann__side{flex:0 0 auto}
+}
+@media(max-width:860px){
+  .ann__ticker{max-width:100%;padding-inline:10px}
+  .ann__slide{font-size:11px;justify-content:center}
+}
+
+/* اصلاح: دو دکمه‌ی کارت شعبه هم‌اندازه و خوانا */
+.branch__acts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.branch__acts .btn{width:100%;min-width:0;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.branch__acts .btn svg{width:14px;height:14px}
+.branch__acts .btn-dark{background:linear-gradient(150deg,var(--gold-lt),var(--gold-dp));color:#241b0d;border-color:transparent;font-weight:800}
+.branch__acts .btn-dark:hover{filter:brightness(1.06);transform:translateY(-1px)}
+.branch__acts .btn-ghost{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.22);color:#eee3d0;font-weight:700}
+.branch__acts .btn-ghost:hover{background:rgba(255,255,255,.16);color:#fff}
+
+/* عنوان هیرو: بدون شکستن کلمات و با اندازه‌ی متعادل */
+.hero h1{font-size:clamp(30px,4.1vw,56px);line-height:1.16;max-width:14ch}
+.hero h1 .line{display:block}
+.hero h1 .line > span{display:block;white-space:nowrap}
+@media(max-width:1100px){.hero h1{font-size:clamp(29px,4.6vw,44px);max-width:16ch}}
+@media(max-width:600px){.hero h1{font-size:clamp(26px,8.4vw,34px);max-width:100%}.hero h1 .line > span{white-space:normal}}
+
+/* کارت شعبه: تنها مسیر رسمی، صفحه‌ی نشانِ ثبت‌شده است. */
+.branch__acts--single{grid-template-columns:1fr}

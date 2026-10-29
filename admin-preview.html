@@ -1,0 +1,1750 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>پنل مدیریت | مبل پرنس</title>
+<meta name="robots" content="noindex">
+<style>
+/* ==========================================================================
+   PERANS — پنل مدیریت
+   ========================================================================== */
+
+
+:root{
+  --cream:#f7f2e8; --paper:#fffdf8; --sand:#efe5d5; --ink:#14110f; --ink-2:#3c352e;
+  --muted:#8b8073; --line:rgba(20,17,15,.10); --line-soft:rgba(20,17,15,.06);
+  --gold:#c2a35c; --gold-lt:#e3c98d; --gold-dp:#a4843f;
+  --emerald:#123f34; --emerald-2:#0d2f27; --green:#3f8f6c; --red:#b4442f; --amber:#c58b2d;
+  --shadow-s:0 2px 10px -4px rgba(20,17,15,.18);
+  --shadow-m:0 18px 40px -26px rgba(20,17,15,.45);
+  --shadow-l:0 40px 90px -50px rgba(20,17,15,.6);
+  --ease:cubic-bezier(.22,1,.36,1);
+  --ease-out:cubic-bezier(.16,1,.3,1);
+  --r:18px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:"Rokh","Vazirmatn",system-ui,sans-serif;background:var(--cream);color:var(--ink);
+  direction:rtl;line-height:1.75;-webkit-font-smoothing:antialiased;
+  background-image:radial-gradient(circle at 88% -10%,rgba(194,163,92,.16),transparent 46%),
+                   radial-gradient(circle at 8% 110%,rgba(18,63,52,.10),transparent 50%);
+  min-height:100vh;
+}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+a{color:inherit;text-decoration:none}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:rgba(20,17,15,.16);border-radius:99px;border:2px solid transparent;background-clip:content-box}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ============================ LOGIN ============================ */
+.login{position:fixed;inset:0;z-index:100;display:grid;place-items:center;overflow:hidden;
+  background:radial-gradient(circle at 70% 18%,#1b4b3e 0%,#0e2b24 46%,#081a16 100%);}
+.login__orb{position:absolute;border-radius:50%;filter:blur(60px);opacity:.5;pointer-events:none}
+.login__orb.o1{width:46vw;height:46vw;top:-12%;inset-inline-end:-8%;background:radial-gradient(circle,rgba(227,201,141,.6),transparent 68%);animation:orbA 18s ease-in-out infinite alternate}
+.login__orb.o2{width:40vw;height:40vw;bottom:-16%;inset-inline-start:-10%;background:radial-gradient(circle,rgba(18,63,52,.9),transparent 66%);animation:orbB 22s ease-in-out infinite alternate}
+@keyframes orbA{to{transform:translate3d(-5vw,4vh,0) scale(1.15)}}
+@keyframes orbB{to{transform:translate3d(6vw,-5vh,0) scale(1.1)}}
+.login__grain{position:absolute;inset:0;opacity:.22;pointer-events:none;
+  background-image:radial-gradient(rgba(255,255,255,.16) 1px,transparent 1px);background-size:26px 26px}
+.login__card{position:relative;z-index:3;width:min(430px,92vw);padding:38px 34px 30px;border-radius:26px;
+  background:linear-gradient(165deg,rgba(255,253,248,.97),rgba(247,240,228,.93));
+  box-shadow:0 60px 120px -40px rgba(0,0,0,.75),0 0 0 1px rgba(227,201,141,.28) inset;
+  animation:cardIn 1s var(--ease-out) both}
+@keyframes cardIn{from{opacity:0;transform:translateY(34px) scale(.96)}}
+.login__card.shake{animation:shakeIt .5s cubic-bezier(.36,.07,.19,.97) both}
+@keyframes shakeIt{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-7px)}40%,60%{transform:translateX(7px)}}
+.login__seal{width:74px;height:74px;margin:0 auto 16px;border-radius:50%;display:grid;place-items:center;
+  background:linear-gradient(150deg,var(--gold-lt),var(--gold-dp));color:#241b0d;box-shadow:0 18px 34px -18px rgba(0,0,0,.7);
+  position:relative}
+.login__seal svg{width:34px;height:34px}
+.login__seal::after{content:"";position:absolute;inset:-8px;border-radius:50%;border:1px dashed rgba(227,201,141,.5);animation:sealSpin 22s linear infinite}
+@keyframes sealSpin{to{transform:rotate(360deg)}}
+.login h1{margin:0;text-align:center;font-size:24px;font-weight:900;letter-spacing:-.01em}
+.login__sub{text-align:center;color:var(--muted);font-size:12.5px;margin:6px 0 26px}
+.login__sub b{color:var(--gold-dp)}
+.fieldset{display:grid;gap:12px}
+.lf{position:relative;display:grid;gap:7px}
+.lf label{font-size:11.5px;font-weight:800;color:var(--ink-2);letter-spacing:.02em}
+.lf .wrap{position:relative;display:flex;align-items:center}
+.lf input{width:100%;padding:13px 44px 13px 44px;border-radius:14px;border:1px solid var(--line);
+  background:#fffefb;font-size:14px;transition:border-color .3s,box-shadow .3s,background .3s}
+.lf input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 4px rgba(194,163,92,.14)}
+.lf .ico{position:absolute;inset-inline-start:14px;display:grid;place-items:center;color:var(--muted);pointer-events:none}
+.lf .ico svg{width:17px;height:17px}
+.lf .eye{position:absolute;inset-inline-end:8px;width:32px;height:32px;border:0;border-radius:10px;background:transparent;
+  cursor:pointer;display:grid;place-items:center;color:var(--muted)}
+.lf .eye:hover{background:rgba(20,17,15,.05);color:var(--ink)}
+.lf .eye svg{width:17px;height:17px}
+.row-between{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:2px}
+.chk{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-2);cursor:pointer;user-select:none}
+.chk input{position:absolute;opacity:0;pointer-events:none}
+.chk i{width:18px;height:18px;border-radius:6px;border:1.5px solid rgba(20,17,15,.22);display:grid;place-items:center;transition:.25s}
+.chk input:checked + i{background:var(--emerald);border-color:var(--emerald);color:#fff}
+.chk i svg{width:12px;height:12px;opacity:0;transform:scale(.6);transition:.25s}
+.chk input:checked + i svg{opacity:1;transform:none}
+.login .hint{font-size:11px;color:var(--muted);display:block;text-align:center;margin-top:4px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:12px 20px;border-radius:13px;border:0;
+  font-weight:800;font-size:13.5px;cursor:pointer;transition:transform .25s var(--ease-out),box-shadow .3s,background .3s,color .3s;
+  position:relative;overflow:hidden}
+.btn:active{transform:scale(.98)}
+.btn svg{width:17px;height:17px}
+.btn--gold{background:linear-gradient(135deg,var(--gold-lt),var(--gold-dp));color:#231a0c;
+  box-shadow:0 16px 30px -18px rgba(164,132,63,.9)}
+.btn--gold:hover{transform:translateY(-2px);box-shadow:0 22px 38px -18px rgba(164,132,63,.95)}
+.btn--gold::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 35%,rgba(255,255,255,.55) 50%,transparent 65%);
+  transform:translateX(-130%)}
+.btn--gold:hover::after{animation:sheen 1.1s var(--ease)}
+@keyframes sheen{to{transform:translateX(130%)}}
+.btn--dark{background:var(--emerald);color:#f4ecdd}
+.btn--dark:hover{background:var(--emerald-2);transform:translateY(-2px)}
+.btn--ghost{background:transparent;border:1px solid var(--line);color:var(--ink-2)}
+.btn--ghost:hover{background:rgba(20,17,15,.04)}
+.btn--danger{background:rgba(180,68,47,.1);color:var(--red)}
+.btn--danger:hover{background:rgba(180,68,47,.16)}
+.btn--sm{padding:8px 13px;font-size:12px;border-radius:10px}
+.btn--block{width:100%;padding:15px}
+.login__foot{text-align:center;font-size:11px;color:var(--muted);margin-top:20px}
+.err{color:var(--red);font-size:12px;font-weight:700;min-height:18px;text-align:center}
+
+/* ============================ SHELL ============================ */
+.app{display:grid;grid-template-columns:266px 1fr;min-height:100vh;opacity:0}
+.app.on{opacity:1}
+.side{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:6px;padding:22px 16px 16px;
+  background:linear-gradient(180deg,#123f34,#0b2a23 70%,#081d18);color:#e9e0cf;overflow:hidden}
+.side::before{content:"";position:absolute;inset-inline-end:-40%;top:-20%;width:70%;height:60%;border-radius:50%;
+  background:radial-gradient(circle,rgba(227,201,141,.18),transparent 70%);pointer-events:none}
+.side__brand{display:flex;align-items:center;gap:11px;padding:6px 8px 18px}
+.side__mark{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;
+  background:linear-gradient(150deg,var(--gold-lt),var(--gold-dp));color:#241b0d;position:relative}
+.side__mark svg{width:21px;height:21px}
+.side__brand b{display:block;font-size:15px;font-weight:900;line-height:1.3}
+.side__brand small{display:block;font-size:8.5px;letter-spacing:.3em;color:#9fb8ab}
+.nav{display:grid;gap:3px;margin-top:6px}
+.nav__item{display:flex;align-items:center;gap:11px;padding:11px 13px;border-radius:13px;cursor:pointer;
+  color:#c9d8cf;font-size:13px;font-weight:700;border:0;background:transparent;width:100%;text-align:start;
+  transition:background .3s,color .3s,transform .3s var(--ease-out);position:relative;
+  opacity:0;transform:translateX(14px)}
+.app.on .nav__item{animation:navIn .6s var(--ease-out) forwards;animation-delay:calc(var(--i,0) * 45ms + 180ms)}
+@keyframes navIn{to{opacity:1;transform:none}}
+.nav__item svg{width:18px;height:18px;opacity:.85;flex:none}
+.nav__item:hover{background:rgba(255,255,255,.07);color:#fff;transform:translateX(-3px)}
+.nav__item.on{background:linear-gradient(100deg,rgba(227,201,141,.22),rgba(227,201,141,.06));color:#f7e7c2;
+  box-shadow:inset 0 0 0 1px rgba(227,201,141,.28)}
+.nav__item.on::before{content:"";position:absolute;inset-inline-end:0;top:22%;height:56%;width:3px;border-radius:3px;background:var(--gold-lt)}
+.nav__badge{margin-inline-start:auto;background:rgba(227,201,141,.2);color:#f3e2b9;border-radius:99px;
+  font-size:10.5px;font-weight:800;padding:1px 7px}
+.side__foot{margin-top:auto;display:grid;gap:8px;padding-top:14px;border-top:1px solid rgba(255,255,255,.09)}
+.side__user{display:flex;align-items:center;gap:10px;padding:8px}
+.side__avatar{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;font-weight:900;
+  background:rgba(255,255,255,.1);color:#f0dcae;font-size:13px}
+.side__user b{display:block;font-size:12.5px}
+.side__user small{display:block;font-size:9.5px;color:#93ab9f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px}
+.side__out{display:flex;align-items:center;gap:8px;justify-content:center;padding:10px;border-radius:12px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#e5d9c4;font-size:12px;font-weight:700;cursor:pointer}
+.side__out:hover{background:rgba(180,68,47,.28);border-color:rgba(180,68,47,.4);color:#ffd9cf}
+.main{min-width:0;display:flex;flex-direction:column}
+.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;padding:14px clamp(16px,3vw,30px);
+  background:rgba(247,242,232,.82);backdrop-filter:blur(14px);border-bottom:1px solid var(--line-soft)}
+.top__title h2{margin:0;font-size:18px;font-weight:900;letter-spacing:-.01em}
+.top__title p{margin:2px 0 0;font-size:11.5px;color:var(--muted)}
+.top__search{margin-inline-start:auto;position:relative;display:flex;align-items:center;max-width:280px;flex:1}
+.top__search input{width:100%;padding:10px 38px 10px 14px;border-radius:12px;border:1px solid var(--line);
+  background:#fffdf9;font-size:12.5px;transition:.3s}
+.top__search input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 4px rgba(194,163,92,.12)}
+.top__search svg{position:absolute;inset-inline-end:12px;width:16px;height:16px;color:var(--muted)}
+.top__act{display:flex;align-items:center;gap:8px}
+.iconbtn{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:#fffdf9;display:grid;place-items:center;
+  cursor:pointer;color:var(--ink-2);transition:.28s;position:relative}
+.iconbtn:hover{background:#fff;border-color:var(--gold);transform:translateY(-1px);box-shadow:var(--shadow-s)}
+.iconbtn svg{width:17px;height:17px}
+.dot-live{position:absolute;top:7px;inset-inline-start:8px;width:7px;height:7px;border-radius:50%;background:var(--green);
+  box-shadow:0 0 0 3px rgba(63,143,108,.2);animation:pulse 2.2s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 6px rgba(63,143,108,0)}}
+.view{padding:clamp(16px,2.6vw,28px);display:none}
+.view.on{display:block;animation:viewIn .55s var(--ease-out) both}
+@keyframes viewIn{from{opacity:0;transform:translateY(14px)}}
+
+/* ============================ CARDS / GRID ============================ */
+.card{background:var(--paper);border:1px solid var(--line-soft);border-radius:var(--r);box-shadow:var(--shadow-s)}
+.card__head{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--line-soft)}
+.card__head h3{margin:0;font-size:14.5px;font-weight:900}
+.card__head p{margin:2px 0 0;font-size:11.5px;color:var(--muted)}
+.card__head .sp{margin-inline-start:auto;display:flex;gap:8px;align-items:center}
+.card__body{padding:18px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.kpi{position:relative;overflow:hidden;padding:18px;border-radius:var(--r);background:var(--paper);
+  border:1px solid var(--line-soft);box-shadow:var(--shadow-s);opacity:0;animation:kpiIn .7s var(--ease-out) forwards;
+  animation-delay:calc(var(--i,0) * 70ms + 80ms)}
+@keyframes kpiIn{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:none}}
+.kpi::after{content:"";position:absolute;inset-block:0;inset-inline-start:0;width:3px;background:linear-gradient(var(--gold-lt),var(--gold-dp))}
+.kpi.k-green::after{background:linear-gradient(#6bbf95,#2f7d5f)}
+.kpi.k-red::after{background:linear-gradient(#e08b76,#b4442f)}
+.kpi.k-amber::after{background:linear-gradient(#e8bf7c,#c58b2d)}
+.kpi__top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.kpi__ico{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:rgba(194,163,92,.14);color:var(--gold-dp)}
+.kpi__ico svg{width:18px;height:18px}
+.kpi b.num{display:block;font-size:27px;font-weight:900;letter-spacing:-.02em;margin-top:12px;line-height:1.2}
+.kpi span.lbl{display:block;font-size:11.5px;color:var(--muted);margin-top:2px}
+.kpi i.trend{font-style:normal;font-size:11px;font-weight:800;color:var(--muted);text-align:end}
+.grid-2{display:grid;grid-template-columns:1.35fr .95fr;gap:14px;margin-top:14px}
+@media(max-width:1000px){.grid-2{grid-template-columns:1fr}}
+
+/* chart */
+.chart{display:flex;align-items:flex-end;gap:10px;height:190px;padding-top:10px}
+.chart__col{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;justify-content:flex-end}
+.chart__bar{width:100%;max-width:44px;border-radius:10px 10px 4px 4px;background:linear-gradient(180deg,var(--gold-lt),var(--gold-dp));
+  transform:scaleY(0);transform-origin:bottom;animation:barGrow .9s var(--ease-out) forwards;
+  animation-delay:calc(var(--i,0) * 90ms + 200ms);position:relative;min-height:6px}
+@keyframes barGrow{to{transform:scaleY(1)}}
+.chart__bar:hover{filter:brightness(1.08)}
+.chart__col small{font-size:10px;color:var(--muted)}
+.chart__col b{font-size:11px;font-weight:800;color:var(--ink-2)}
+
+/* table */
+.tablewrap{overflow:auto;border-radius:var(--r)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{padding:11px 12px;text-align:start;white-space:nowrap}
+th{font-size:11px;font-weight:800;color:var(--muted);background:rgba(20,17,15,.03);position:sticky;top:0;z-index:1}
+tbody tr{border-top:1px solid var(--line-soft);transition:background .25s}
+tbody tr:hover{background:rgba(194,163,92,.07)}
+td .cellpro{display:flex;align-items:center;gap:10px}
+td img.thumb{width:38px;height:38px;border-radius:10px;object-fit:cover;background:var(--sand);flex:none}
+td .cellpro b{display:block;font-weight:800}
+td .cellpro small{display:block;font-size:10.5px;color:var(--muted)}
+.tag{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:99px;font-size:10.5px;font-weight:800;
+  background:rgba(20,17,15,.06);color:var(--ink-2)}
+.tag.g{background:rgba(63,143,108,.14);color:#2f6f54}
+.tag.r{background:rgba(180,68,47,.12);color:var(--red)}
+.tag.a{background:rgba(197,139,45,.16);color:#8c6118}
+.tag.b{background:rgba(194,163,92,.18);color:var(--gold-dp)}
+.rowact{display:flex;gap:6px;justify-content:flex-end}
+.mini{width:30px;height:30px;border-radius:9px;border:1px solid var(--line);background:#fff;display:grid;place-items:center;
+  cursor:pointer;color:var(--ink-2);transition:.25s}
+.mini:hover{background:rgba(194,163,92,.14);border-color:var(--gold);color:var(--gold-dp)}
+.mini.del:hover{background:rgba(180,68,47,.12);border-color:#d9b0a6;color:var(--red)}
+.mini svg{width:14px;height:14px}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+.toolbar .search{position:relative;display:flex;align-items:center;flex:1;min-width:200px}
+.toolbar input,.toolbar select{padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:#fffdf9;font-size:12.5px}
+.toolbar .search input{padding-inline-end:38px;width:100%}
+.toolbar .search svg{position:absolute;inset-inline-end:12px;width:15px;height:15px;color:var(--muted)}
+.toolbar input:focus,.toolbar select:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 4px rgba(194,163,92,.12)}
+.empty{padding:46px 20px;text-align:center;color:var(--muted);font-size:13px}
+.empty svg{width:42px;height:42px;opacity:.35;margin-bottom:10px}
+
+/* forms */
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.formgrid .full{grid-column:1/-1}
+@media(max-width:760px){.formgrid{grid-template-columns:1fr}}
+.f{display:grid;gap:6px}
+.f label{font-size:11.5px;font-weight:800;color:var(--ink-2)}
+.f small{font-size:10.5px;color:var(--muted)}
+.f input,.f select,.f textarea{padding:11px 13px;border-radius:12px;border:1px solid var(--line);background:#fffdf9;font-size:13px;
+  transition:border-color .28s,box-shadow .28s;width:100%}
+.f textarea{min-height:92px;resize:vertical;line-height:1.9}
+.f input:focus,.f select:focus,.f textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 4px rgba(194,163,92,.13)}
+.switchrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:13px;
+  border:1px solid var(--line-soft);background:rgba(194,163,92,.06)}
+.switch{position:relative;width:44px;height:25px;flex:none;cursor:pointer}
+.switch input{position:absolute;opacity:0}
+.switch i{position:absolute;inset:0;border-radius:99px;background:rgba(20,17,15,.18);transition:.3s}
+.switch i::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:19px;height:19px;border-radius:50%;background:#fff;
+  box-shadow:0 2px 6px rgba(0,0,0,.2);transition:.3s var(--ease-out)}
+.switch input:checked + i{background:var(--green)}
+.switch input:checked + i::after{transform:translateX(-19px)}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:99px;border:1px solid var(--line);
+  background:#fffdf9;font-size:11.5px;font-weight:700;cursor:pointer;transition:.25s}
+.chip:hover{border-color:var(--gold);background:rgba(194,163,92,.1)}
+.chip.on{background:var(--emerald);color:#f2e7d2;border-color:var(--emerald)}
+.chip .x{color:inherit;opacity:.6;cursor:pointer}
+.chip .x:hover{opacity:1}
+.hr{height:1px;background:var(--line-soft);margin:16px 0}
+.muted{color:var(--muted)}
+.sectiongrid{display:grid;gap:14px}
+.savedot{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--green);font-weight:800}
+.savedot::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
+
+/* modal */
+.modal{position:fixed;inset:0;z-index:80;display:none;place-items:center;padding:18px;background:rgba(14,20,17,.55);backdrop-filter:blur(6px)}
+.modal.on{display:grid;animation:fadeIn .3s}
+@keyframes fadeIn{from{opacity:0}}
+.modal__box{width:min(760px,100%);max-height:92vh;overflow:auto;background:var(--paper);border-radius:22px;
+  box-shadow:var(--shadow-l);animation:modalIn .5s var(--ease-out) both}
+@keyframes modalIn{from{opacity:0;transform:translateY(20px) scale(.97)}}
+.modal__head{display:flex;align-items:center;gap:12px;padding:18px 22px;border-bottom:1px solid var(--line-soft);position:sticky;top:0;
+  background:linear-gradient(var(--paper),rgba(255,253,248,.92));backdrop-filter:blur(8px);z-index:2}
+.modal__head h3{margin:0;font-size:15.5px;font-weight:900}
+.modal__body{padding:20px 22px}
+.modal__foot{display:flex;gap:10px;justify-content:flex-end;padding:16px 22px;border-top:1px solid var(--line-soft);position:sticky;bottom:0;
+  background:linear-gradient(rgba(255,253,248,.92),var(--paper));backdrop-filter:blur(8px)}
+.x{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:#fff;display:grid;place-items:center;cursor:pointer}
+.x:hover{background:rgba(180,68,47,.1);color:var(--red)}
+.x svg{width:16px;height:16px}
+input[type=file]{font-size:11px;color:var(--muted);padding:8px;border-radius:10px;border:1px dashed var(--line);background:#fffdf9;width:100%}
+input[type=file]::file-selector-button{font-family:inherit;font-size:11px;font-weight:700;padding:6px 10px;margin-inline-end:8px;
+  border-radius:8px;border:1px solid var(--line);background:#fff;cursor:pointer}
+
+/* toast */
+.toasts{position:fixed;inset-inline-start:20px;bottom:20px;z-index:200;display:grid;gap:9px}
+.toast{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:14px;background:#12211c;color:#f2e9d9;
+  font-size:12.5px;font-weight:700;box-shadow:var(--shadow-m);animation:toastIn .5s var(--ease-out) both}
+.toast.ok{background:linear-gradient(120deg,#1b5040,#123f34)}
+.toast.err{background:linear-gradient(120deg,#8c3a2a,#6f2c20)}
+.toast svg{width:16px;height:16px;color:#e3c98d}
+@keyframes toastIn{from{opacity:0;transform:translateY(16px) scale(.96)}}
+.toast.out{animation:toastOut .35s var(--ease) forwards}
+@keyframes toastOut{to{opacity:0;transform:translateX(-20px)}}
+
+/* login → app transition */
+.login.leave{animation:loginOut .8s var(--ease) forwards}
+@keyframes loginOut{to{opacity:0;transform:scale(1.04);visibility:hidden}}
+
+.side__close{display:none;position:absolute;top:14px;inset-inline-end:14px;width:34px;height:34px;border-radius:10px;border:0;
+  background:rgba(255,255,255,.08);color:#e9e0cf;place-items:center;cursor:pointer;z-index:2}
+@media(max-width:900px){
+  .app{grid-template-columns:1fr}
+  .side{position:fixed;inset-block:0;inset-inline-start:0;width:250px;z-index:60;transform:translateX(105%);transition:transform .45s var(--ease-out)}
+  .side.on{transform:none;box-shadow:0 0 60px rgba(0,0,0,.4)}
+  .side__close{display:grid}
+  .top__search{display:none}
+  .kpis{grid-template-columns:1fr 1fr}
+}
+@media(max-width:560px){.kpis{grid-template-columns:1fr}.formgrid{grid-template-columns:1fr}}
+
+
+/* ---------- polish ---------- */
+.view > .card, .view .sectiongrid > .card{max-width:1180px}
+@media(max-width:760px){
+  /* جدول محصولات در موبایل: فقط ستون‌های ضروری */
+  #view-products table th:nth-child(4),#view-products table td:nth-child(4),
+  #view-products table th:nth-child(5),#view-products table td:nth-child(5),
+  #view-products table th:nth-child(6),#view-products table td:nth-child(6){display:none}
+  #view-products td,#view-products th{padding:9px 8px}
+  td img.thumb{width:34px;height:34px}
+  .toolbar .btn{margin-inline-start:auto}
+  .kpi b.num{font-size:24px}
+  .modal__box{border-radius:18px}
+  .modal__body{padding:16px}
+  .top__title h2{font-size:16px}
+}
+@media(max-width:560px){
+  .view{padding:12px}
+  .modal__foot{flex-wrap:wrap}
+  .modal__foot .btn{flex:1}
+}
+
+</style>
+<script>
+/* PERANS — site data (generated / editable by the admin panel) */
+window.PERANS_DATA = {
+  "version": 2,
+  "brand": {
+    "name": "مبل پرنس",
+    "en": "PERANS",
+    "tagline": "فروشگاه مبلمان پرنس — بیرجند",
+    "phone": "09159598518",
+    "phoneRaw": "09159598518",
+    "mobile": "09159598518",
+    "mobileRaw": "09159598518",
+    "address": "خیابان انقلاب، نبش انقلاب ۳",
+    "hours": "همه‌روزه ۹ تا ۲۱ — جمعه‌ها ۱۶ تا ۲۱",
+    "email": "",
+    "instagram": "https://instagram.com/PERANS_FURNITURE",
+    "whatsapp": "",
+    "telegram": "",
+    "since": "۱۳۷۲",
+    "sinceEn": "1993"
+  },
+  "hero": {
+    "badge": "PERANS · بیرجند · برای خانه‌ای که امضای شماست",
+    "t1": "خانه‌ات را",
+    "t2": "خاص‌تر بچین؛",
+    "t3": "با امضای پرنس.",
+    "lead": "از نشیمنِ صمیمی تا پذیراییِ چشم‌گیر؛ مدل‌های منتخب مبل، ناهارخوری، اتاق خواب و دکور را کنار هم ببینید و برای فضای خودتان انتخاب کنید."
+  },
+  "stats": [
+    {
+      "value": "راحتی",
+      "label": "برای نشیمن"
+    },
+    {
+      "value": "کلاسیک",
+      "label": "برای پذیرایی"
+    },
+    {
+      "value": "ناهارخوری",
+      "label": "برای دورهمی"
+    },
+    {
+      "value": "دکور",
+      "label": "برای جزئیات خانه"
+    }
+  ],
+  "announce": [
+    "برای هماهنگی خرید و بازدید، با ما تماس بگیرید",
+    "شعبه‌ی مرکزی: خیابان انقلاب، نبش انقلاب ۳",
+    "PERANS_FURNITURE را در اینستاگرام دنبال کنید"
+  ],
+  "categories": [
+    {
+      "id": "all",
+      "name": "همه محصولات"
+    },
+    {
+      "id": "modern",
+      "name": "مبل راحتی"
+    },
+    {
+      "id": "classic",
+      "name": "کلاسیک و استیل"
+    },
+    {
+      "id": "dining",
+      "name": "ناهارخوری"
+    },
+    {
+      "id": "bedroom",
+      "name": "اتاق خواب"
+    },
+    {
+      "id": "decor",
+      "name": "دکور و روشنایی"
+    }
+  ],
+  "products": [
+    {
+      "id": "royal",
+      "name": "مبل راحتی رویال",
+      "cat": "modern",
+      "img": "p1",
+      "price": 84500000,
+      "old": 92000000,
+      "rating": 0,
+      "reviews": 0,
+      "badge": "پرفروش",
+      "badgeClass": "sale",
+      "colors": [
+        "#123f34",
+        "#b58a5c",
+        "#efe7d8",
+        "#3a3733"
+      ],
+      "desc": "رویال، پرچم‌دار مجموعه‌ی پرنس است: مخمل ایتالیایی با تراکم بالا، نشیمن سه‌نفره‌ی عمیق و پایه‌های برنجی؛ محبوب‌ترین مدل فروشگاه پرنس برای نشیمن‌هایی که مهمان‌ها در آن می‌مانند.",
+      "tags": [
+        "مخمل ضدلکه",
+        "پایه برنج",
+        "۳ نفره",
+        "اسفنج سرد"
+      ],
+      "specs": {
+        "ابعاد": "۲۳۰ × ۹۵ × ۸۲ سانتی‌متر",
+        "جنس بدنه": "راش خشک‌شده + تخته MDF ضدآب",
+        "پارچه": "مخمل ایتالیایی ضدلکه",
+        "وزن": "۹۸ کیلوگرم",
+        "ضمانت": "۵ سال سازه / ۲ سال پارچه (برند سازنده)",
+        "زمان ارسال": "۲ تا ۴ روز کاری"
+      }
+    },
+    {
+      "id": "nobel",
+      "name": "مبل راحتی نُبل",
+      "cat": "modern",
+      "img": "p2",
+      "price": 62900000,
+      "old": null,
+      "rating": 0,
+      "reviews": 0,
+      "badge": "جدید",
+      "badgeClass": "new",
+      "colors": [
+        "#b9b4ad",
+        "#efe7d8",
+        "#274d3f",
+        "#ddcbb0"
+      ],
+      "desc": "خطوط منحنی و حجم‌های نرم نُبل، نشیمن‌های کوچک را بزرگ‌تر نشان می‌دهد. پارچه‌ی بوکله با بافت درشت و پایه‌های چوب گردو، حس آرامش را به خانه می‌آورد.",
+      "tags": [
+        "پارچه بوکله",
+        "پایه چوب گردو",
+        "۳ نفره",
+        "ارسال سریع"
+      ],
+      "specs": {
+        "ابعاد": "۲۴۵ × ۹۰ × ۷۸ سانتی‌متر",
+        "جنس بدنه": "چوب راش + فنر بونل",
+        "پارچه": "بوکله بلژیکی",
+        "وزن": "۸۶ کیلوگرم",
+        "ضمانت": "۵ سال سازه",
+        "زمان ارسال": "۲ تا ۴ روز کاری"
+      }
+    },
+    {
+      "id": "monaco",
+      "name": "صندلی موناکو",
+      "cat": "classic",
+      "img": "p3",
+      "price": 32400000,
+      "old": 36800000,
+      "rating": 0,
+      "reviews": 0,
+      "badge": "پیشنهاد",
+      "badgeClass": "",
+      "colors": [
+        "#c58b2d",
+        "#123f34",
+        "#efe7d8",
+        "#5a3d2b"
+      ],
+      "desc": "موناکو با قالب چوب گردو و دوخت واکس‌خورده، همان صندلی است که در عکس‌های خانه‌های کلاسیک دنبالش بودید؛ اما روی نشیمن آن می‌توانید ساعت‌ها بنشینید.",
+      "tags": [
+        "چوب گردو",
+        "مخمل دوره‌ای",
+        "تک‌نفره",
+        "چوب گردو"
+      ],
+      "specs": {
+        "ابعاد": "۸۲ × ۸۵ × ۷۸ سانتی‌متر",
+        "جنس بدنه": "گردوی منبت‌کاری‌شده",
+        "پارچه": "مخمل دوره‌ای",
+        "وزن": "۲۴ کیلوگرم",
+        "ضمانت": "۵ سال",
+        "زمان ارسال": "۲ تا ۴ روز کاری"
+      }
+    },
+    {
+      "id": "marble",
+      "name": "میز ناهارخوری مرمرین",
+      "cat": "dining",
+      "img": "p4",
+      "price": 54800000,
+      "old": 61000000,
+      "rating": 0,
+      "reviews": 0,
+      "badge": "تخفیف",
+      "badgeClass": "sale",
+      "colors": [
+        "#efe7d8",
+        "#ddcbb0",
+        "#3a3733",
+        "#5a3d2b"
+      ],
+      "desc": "صفحه‌ی سنگ مرمر با رگه‌های یکتا، روی پایه‌ی برنجی با پوشش مقاوم که اثر انگشت نمی‌گیرد. ظرفیت شش نفر با فضای کافی برای دیس مهمانی.",
+      "tags": [
+        "مرمر طبیعی",
+        "پایه برنج",
+        "۶ نفره",
+        "پوشش نانو"
+      ],
+      "specs": {
+        "ابعاد": "۱۸۰ × ۹۰ × ۷۶ سانتی‌متر",
+        "جنس بدنه": "مرمر طبیعی + برنج",
+        "پارچه": "—",
+        "وزن": "۱۱۰ کیلوگرم",
+        "ضمانت": "۵ سال",
+        "زمان ارسال": "۳ تا ۵ روز کاری"
+      }
+    },
+    {
+      "id": "queen",
+      "name": "تخت خواب کوئین",
+      "cat": "bedroom",
+      "img": "p5",
+      "price": 68000000,
+      "old": 74000000,
+      "rating": 0,
+      "reviews": 0,
+      "badge": "پرفروش",
+      "badgeClass": "sale",
+      "colors": [
+        "#ddcbb0",
+        "#efe7d8",
+        "#b9b4ad",
+        "#274d3f"
+      ],
+      "desc": "پشتی قوس‌دار کوئین با رویه‌ی پارچه‌ی کتان شسته، ستون فقرات اتاق خواب شماست. زیر تخت، کشوی جادار و سیستم مهار تشک ضد صدا دارد.",
+      "tags": [
+        "کتان شسته",
+        "کشوی مخفی",
+        "دو نفره",
+        "پشتی قوس‌دار"
+      ],
+      "specs": {
+        "ابعاد": "۲۱۰ × ۱۸۰ × ۱۲۰ سانتی‌متر",
+        "جنس بدنه": "راش + ام‌دی‌اف روکش",
+        "پارچه": "کتان شسته ضدلکه",
+        "وزن": "۹۲ کیلوگرم",
+        "ضمانت": "۵ سال",
+        "زمان ارسال": "۲ تا ۴ روز کاری"
+      }
+    },
+    {
+      "id": "loma",
+      "name": "میز جلومبلی لوما",
+      "cat": "decor",
+      "img": "p6",
+      "price": 21900000,
+      "old": null,
+      "rating": 0,
+      "reviews": 0,
+      "badge": null,
+      "colors": [
+        "#efe7d8",
+        "#3a3733",
+        "#5a3d2b"
+      ],
+      "desc": "ترکیب مرمر کرم و برنج مات در دو طبقه؛ لومای بزرگ با میز کنار کوچکش، ستاره‌ی هر نشیمنی است که با آن عکس می‌گیرند.",
+      "tags": [
+        "مرمر",
+        "برنج مات",
+        "ست دو تکه"
+      ],
+      "specs": {
+        "ابعاد": "قطر ۹۰ / ۴۵ سانتی‌متر",
+        "جنس بدنه": "مرمر + فولاد برنجی",
+        "پارچه": "—",
+        "وزن": "۳۸ کیلوگرم",
+        "ضمانت": "۳ سال",
+        "زمان ارسال": "۱ تا ۳ روز کاری"
+      }
+    },
+    {
+      "id": "versailles",
+      "name": "کمد دیواری ورسای",
+      "cat": "bedroom",
+      "img": "p7",
+      "price": 47500000,
+      "old": null,
+      "rating": 0,
+      "reviews": 0,
+      "badge": null,
+      "colors": [
+        "#5a3d2b",
+        "#efe7d8",
+        "#3a3733"
+      ],
+      "desc": "درهای شیاردار با دستگیره‌های برنجی و داخل‌بندی ماژولار: قفسه‌های جابه‌جاشو، ریل نرم‌بند و نور داخلی هوشمند.",
+      "tags": [
+        "چوب گردو",
+        "درهای شیاردار",
+        "نور داخلی"
+      ],
+      "specs": {
+        "ابعاد": "۲۲۰ × ۱۲۰ × ۶۰ سانتی‌متر",
+        "جنس بدنه": "روکش گردوی طبیعی",
+        "پارچه": "—",
+        "وزن": "۱۴۵ کیلوگرم",
+        "ضمانت": "۵ سال",
+        "زمان ارسال": "۲ تا ۴ روز کاری"
+      }
+    },
+    {
+      "id": "tolou",
+      "name": "آباژور ایستاده طلوع",
+      "cat": "decor",
+      "img": "p8",
+      "price": 8900000,
+      "old": 10500000,
+      "rating": 0,
+      "reviews": 0,
+      "badge": "جدید",
+      "badgeClass": "new",
+      "colors": [
+        "#efe7d8",
+        "#3a3733",
+        "#5a3d2b"
+      ],
+      "desc": "نور گرم و پخش‌شده با عابرباش کتان و بازوی برنجی نازک؛ طلوع، گوشه‌ی مطالعه را به گرم‌ترین نقطه‌ی خانه تبدیل می‌کند.",
+      "tags": [
+        "کتان",
+        "برنج",
+        "دیمردار"
+      ],
+      "specs": {
+        "ابعاد": "ارتفاع ۱۶۵ سانتی‌متر",
+        "جنس بدنه": "برنج + کتان",
+        "پارچه": "—",
+        "وزن": "۸ کیلوگرم",
+        "ضمانت": "۲ سال",
+        "زمان ارسال": "۱ تا ۳ روز کاری"
+      }
+    },
+    {
+      "id": "arya",
+      "name": "مبل دونفره آریا",
+      "cat": "modern",
+      "img": "p2",
+      "price": 48900000,
+      "old": null,
+      "rating": 0,
+      "reviews": 0,
+      "badge": null,
+      "colors": [
+        "#b9b4ad",
+        "#274d3f",
+        "#ddcbb0",
+        "#efe7d8"
+      ],
+      "desc": "همان راحتی نُبل، در ابعادی که برای آپارتمان‌های کوچک مناسب است. آریا در دو نسخه‌ی کنسول چپ و راست موجود است.",
+      "tags": [
+        "۲ نفره",
+        "پارچه ضدلکه",
+        "دو نسخه چپ/راست"
+      ],
+      "specs": {
+        "ابعاد": "۱۷۰ × ۸۸ × ۷۸ سانتی‌متر",
+        "جنس بدنه": "راش + فنر",
+        "پارچه": "بوکله",
+        "وزن": "۶۲ کیلوگرم",
+        "ضمانت": "۵ سال",
+        "زمان ارسال": "۲ تا ۴ روز کاری"
+      }
+    },
+    {
+      "id": "baroque",
+      "name": "صندلی ناهارخوری باروک",
+      "cat": "dining",
+      "img": "p3",
+      "price": 12400000,
+      "old": null,
+      "rating": 0,
+      "reviews": 0,
+      "badge": null,
+      "colors": [
+        "#c58b2d",
+        "#efe7d8",
+        "#3a3733",
+        "#5a3d2b"
+      ],
+      "desc": "صندلی باروک با پشتی بلند و دوخت میخ‌کوبی؛ انتخاب‌شده برای نشستن‌های طولانی سر میز.",
+      "tags": [
+        "تک‌نفره",
+        "میخ‌کوبی",
+        "چوب گردو"
+      ],
+      "specs": {
+        "ابعاد": "۴۸ × ۵۵ × ۱۰۰ سانتی‌متر",
+        "جنس بدنه": "گردو",
+        "پارچه": "مخمل ضدلکه",
+        "وزن": "۱۱ کیلوگرم",
+        "ضمانت": "۵ سال",
+        "زمان ارسال": "۲ تا ۴ روز کاری"
+      }
+    },
+    {
+      "id": "princess",
+      "name": "تخت خواب پرنسس",
+      "cat": "bedroom",
+      "img": "p5",
+      "price": 29900000,
+      "old": null,
+      "rating": 0,
+      "reviews": 0,
+      "badge": null,
+      "colors": [
+        "#efe7d8",
+        "#ddcbb0",
+        "#b9b4ad"
+      ],
+      "desc": "تخت یک‌نفره با پشتی گرد و پایه‌های کوتاه چوبی، برای اتاق‌های کوچک و نورگیر؛ نسخه‌ی دارای کشوی زیر تخت هم موجود است.",
+      "tags": [
+        "یک نفره",
+        "پشتی گرد",
+        "کشوی زیر تخت"
+      ],
+      "specs": {
+        "ابعاد": "۲۰۰ × ۹۰ × ۱۰۵ سانتی‌متر",
+        "جنس بدنه": "راش",
+        "پارچه": "کتان شسته",
+        "وزن": "۵۴ کیلوگرم",
+        "ضمانت": "۵ سال",
+        "زمان ارسال": "۲ تا ۴ روز کاری"
+      }
+    },
+    {
+      "id": "milano",
+      "name": "ست جلومبلی میلانو",
+      "cat": "decor",
+      "img": "p6",
+      "price": 16700000,
+      "old": 18900000,
+      "rating": 0,
+      "reviews": 0,
+      "badge": null,
+      "colors": [
+        "#efe7d8",
+        "#5a3d2b",
+        "#3a3733"
+      ],
+      "desc": "سه میز با ارتفاع‌های مختلف که می‌توانید کنار هم یا جدا بچینید؛ صفحه‌ی مرمر و پایه‌ی برنجی با پوشش ضدخش.",
+      "tags": [
+        "ست سه تکه",
+        "مرمر",
+        "برنج"
+      ],
+      "specs": {
+        "ابعاد": "قطر ۶۰ / ۴۵ / ۳۵ سانتی‌متر",
+        "جنس بدنه": "مرمر + برنج",
+        "پارچه": "—",
+        "وزن": "۲۶ کیلوگرم",
+        "ضمانت": "۳ سال",
+        "زمان ارسال": "۱ تا ۳ روز کاری"
+      }
+    }
+  ],
+  "quotes": [],
+  "commerce": {
+    "shipping": 1200000,
+    "threshold": 20000000,
+    "coupons": {
+      "PERANS10": 0.1
+    }
+  }
+};
+
+</script>
+</head>
+<body>
+
+<svg style="display:none" aria-hidden="true">
+  <symbol id="a-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></symbol>
+  <symbol id="a-box" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 8v8a2 2 0 0 1-1 1.7l-7 4a2 2 0 0 1-2 0l-7-4A2 2 0 0 1 3 16V8a2 2 0 0 1 1-1.7l7-4a2 2 0 0 1 2 0l7 4A2 2 0 0 1 21 8z"/><path d="M3.3 7 12 12l8.7-5M12 22V12"/></symbol>
+  <symbol id="a-cart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h2.5l2.2 11.2a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 2-1.6L21 7H6"/></symbol>
+  <symbol id="a-tag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.6 13.4 12 22 2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8z"/><circle cx="7" cy="7" r="1.6"/></symbol>
+  <symbol id="a-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+  <symbol id="a-cog" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 8.9 19a1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 8.9a1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+  <symbol id="a-save" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></symbol>
+  <symbol id="a-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+  <symbol id="a-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
+  <symbol id="a-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="a-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></symbol>
+  <symbol id="a-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="a-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></symbol>
+  <symbol id="a-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+  <symbol id="a-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.6-3.6"/></symbol>
+  <symbol id="a-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M4 12.5 9 17.5 20 6.5"/></symbol>
+  <symbol id="a-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="a-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 3v13M6 11l6 6 6-6M4 21h16"/></symbol>
+  <symbol id="a-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 21V8M6 13l6-6 6 6M4 3h16"/></symbol>
+  <symbol id="a-star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 20.9l1.1-6.5L2.6 9.8l6.5-.9z"/></symbol>
+  <symbol id="a-quote" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M9 7H5a2 2 0 0 0-2 2v4h6V7zM21 7h-4a2 2 0 0 0-2 2v4h6V7zM3 13v2a4 4 0 0 0 4 4M15 13v2a4 4 0 0 0 4 4"/></symbol>
+  <symbol id="a-layers" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m12 2 9 5-9 5-9-5 9-5z"/><path d="m3 12 9 5 9-5M3 17l9 5 9-5"/></symbol>
+  <symbol id="a-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 11V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3"/><path d="M3 11a2 2 0 0 1 2 2v3h14v-3a2 2 0 0 1 2-2"/><path d="M6 16v2M18 16v2"/></symbol>
+  <symbol id="a-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="a-image" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="m21 16-5-5-9 9"/></symbol>
+</svg>
+
+<!-- ============================ LOGIN ============================ -->
+<div class="login" id="login">
+  <span class="login__orb o1"></span>
+  <span class="login__orb o2"></span>
+  <span class="login__grain"></span>
+  <form class="login__card" id="loginForm" autocomplete="off">
+    <div class="login__seal"><svg><use href="#a-logo"/></svg></div>
+    <h1>پنل مدیریت پرنس</h1>
+    <p class="login__sub">برای ویرایش سایت، وارد شوید — <b>PERANS · BIRJAND</b></p>
+    <div class="fieldset">
+      <div class="lf">
+        <label for="pw">رمز عبور</label>
+        <div class="wrap">
+          <span class="ico"><svg><use href="#a-lock"/></svg></span>
+          <input id="pw" type="password" placeholder="••••••••" autocomplete="current-password" required>
+          <button class="eye" type="button" id="eye" aria-label="نمایش رمز"><svg><use href="#a-eye"/></svg></button>
+        </div>
+      </div>
+      <div class="row-between">
+        <label class="chk"><input type="checkbox" id="remember" checked><i><svg><use href="#a-check"/></svg></i> مرا به خاطر بسپار</label>
+        <a class="hint" href="#" onclick="return false">رمز پیش‌فرض: perans1404</a>
+      </div>
+      <div class="err" id="loginErr"></div>
+      <button class="btn btn--gold btn--block" type="submit" id="loginBtn">
+        ورود به پنل <svg><use href="#a-out"/></svg>
+      </button>
+    </div>
+    <div class="login__foot">دسترسی محدود · تمام تغییرات فقط روی همین مرورگر و فایل داده‌ی سایت ذخیره می‌شود</div>
+  </form>
+</div>
+
+<!-- ============================ APP ============================ -->
+<div class="app" id="app">
+  <aside class="side" id="side">
+    <button class="side__close" id="sideClose"><svg width="16" height="16"><use href="#a-x"/></svg></button>
+    <div class="side__brand">
+      <span class="side__mark"><svg><use href="#a-logo"/></svg></span>
+      <div><b>مبل پرنس</b><small>PERANS ADMIN</small></div>
+    </div>
+    <nav class="nav" id="nav">
+      <button class="nav__item on" data-view="dash" style="--i:0"><svg><use href="#a-grid"/></svg> داشبورد</button>
+      <button class="nav__item" data-view="products" style="--i:1"><svg><use href="#a-box"/></svg> محصولات <span class="nav__badge" id="navProducts">—</span></button>
+      <button class="nav__item" data-view="orders" style="--i:2"><svg><use href="#a-cart"/></svg> سفارش‌ها <span class="nav__badge" id="navOrders">۰</span></button>
+      <button class="nav__item" data-view="cats" style="--i:3"><svg><use href="#a-layers"/></svg> دسته‌بندی‌ها</button>
+      <button class="nav__item" data-view="content" style="--i:4"><svg><use href="#a-edit"/></svg> محتوای صفحه</button>
+      <button class="nav__item" data-view="commerce" style="--i:5"><svg><use href="#a-tag"/></svg> فروش و تخفیف</button>
+      <button class="nav__item" data-view="settings" style="--i:6"><svg><use href="#a-cog"/></svg> تنظیمات و تماس</button>
+      <button class="nav__item" data-view="backup" style="--i:7"><svg><use href="#a-save"/></svg> پشتیبان‌گیری</button>
+    </nav>
+    <div class="side__foot">
+      <div class="side__user">
+        <span class="side__avatar">پ</span>
+        <div><b>مدیر فروشگاه</b><small id="lastSaved">—</small></div>
+      </div>
+      <button class="side__out" id="logout"><svg width="15" height="15"><use href="#a-out"/></svg> خروج از حساب</button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="top">
+      <button class="iconbtn" id="sideOpen" style="display:none"><svg><use href="#a-menu"/></svg></button>
+      <div class="top__title"><h2 id="pageTitle">داشبورد</h2><p id="pageSub">نمای کلی فروشگاه</p></div>
+      <div class="top__search"><input id="globalSearch" placeholder="جستجوی محصول…"><svg><use href="#a-search"/></svg></div>
+      <div class="top__act">
+        <a class="iconbtn" href="perans-furniture-preview.html" target="_blank" title="مشاهده سایت"><svg><use href="#a-eye"/></svg></a>
+        <button class="iconbtn" id="saveAll" title="ذخیره و انتشار در سایت"><svg><use href="#a-save"/></svg><span class="dot-live"></span></button>
+      </div>
+    </header>
+
+    <section class="view on" id="view-dash"></section>
+    <section class="view" id="view-products"></section>
+    <section class="view" id="view-orders"></section>
+    <section class="view" id="view-cats"></section>
+    <section class="view" id="view-content"></section>
+    <section class="view" id="view-commerce"></section>
+    <section class="view" id="view-settings"></section>
+    <section class="view" id="view-backup"></section>
+  </div>
+</div>
+
+<div class="modal" id="modal"><div class="modal__box" id="modalBox"></div></div>
+<div class="toasts" id="toasts"></div>
+<input type="file" id="filePick" accept="application/json,.json" style="display:none">
+
+<script>
+/* ==========================================================================
+   PERANS — Admin panel logic (vanilla, no build step)
+   ========================================================================== */
+(function () {
+  'use strict';
+
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+
+  const LS_ADMIN = 'perans_admin_data';
+  const LS_SITE = 'perans_site_data';
+  const LS_AUTH = 'perans_admin_auth';
+  const LS_SESSION = 'perans_admin_session';
+  const LS_ORDERS = 'perans_orders';
+  const DEFAULT_PW = 'perans1404';
+
+  /* ذخیره‌سازی مقاوم: اگر مرورگر/iframe اجازه ندهد، در حافظه‌ی همین صفحه نگه می‌داریم */
+  const store = (function () {
+    let ok = true, mem = {};
+    try { localStorage.setItem('__perans_t', '1'); localStorage.removeItem('__perans_t'); } catch (e) { ok = false; }
+    return {
+      get ok() { return ok; },
+      get(k) { try { return ok ? localStorage.getItem(k) : (k in mem ? mem[k] : null); } catch (e) { return mem[k] || null; } },
+      set(k, v) { try { if (ok) localStorage.setItem(k, v); else mem[k] = v; } catch (e) { mem[k] = v; } },
+      del(k) { try { if (ok) localStorage.removeItem(k); delete mem[k]; } catch (e) { delete mem[k]; } }
+    };
+  })();
+
+  const ICO = (n) => '<svg aria-hidden="true"><use href="#a-' + n + '"/></svg>';
+  const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const num = (n) => (isFinite(n) ? Number(n).toLocaleString('fa-IR') : '۰');
+  const money = (n) => num(n) + ' تومان';
+
+  const IMG_LIB = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8', 'hero', 'look1', 'lounge', 'showroom'];
+  const imgOf = (v) => (!v ? '../images/p1.jpg' : (/^(data:|https?:|\.\.?\/|images\/)/.test(v) ? v : '../images/' + v + '.jpg'));
+
+  /* ------------------------------------------------------------------ store */
+  const FALLBACK = {
+    version: 1,
+    brand: { name: 'مبل پرنس', en: 'PERANS', phone: '09159598518', phoneRaw: '09159598518', mobile: '09159598518', mobileRaw: '09159598518', address: 'خیابان انقلاب، نبش انقلاب ۳', hours: 'همه‌روزه ۹ تا ۲۱ — جمعه‌ها ۱۶ تا ۲۱', email: '', instagram: 'https://instagram.com/PERANS_FURNITURE', whatsapp: '', telegram: '', since: '۱۳۷۲' },
+    hero: { badge: 'PERANS · بیرجند · برای خانه‌ای که امضای شماست', t1: 'خانه‌ات را', t2: 'خاص‌تر بچین؛', t3: 'با امضای پرنس.', lead: 'از نشیمنِ صمیمی تا پذیراییِ چشم‌گیر؛ مدل‌های منتخب مبل، ناهارخوری، اتاق خواب و دکور را کنار هم ببینید و برای فضای خودتان انتخاب کنید.' },
+    stats: [], announce: [], categories: [{ id: 'all', name: 'همه محصولات' }], products: [],
+    commerce: { shipping: 1200000, threshold: 20000000, coupons: {} }
+  };
+
+  function deepClone(o) { return JSON.parse(JSON.stringify(o)); }
+
+  function loadAdmin() {
+    const seed = window.PERANS_DATA || window.PERANS_DEFAULTS || FALLBACK;
+    try {
+      const raw = store.get(LS_ADMIN);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (saved && typeof saved === 'object') {
+          if ((+saved.version || 1) < (+seed.version || 2)) {
+            return Object.assign({}, saved, {
+              version: seed.version,
+              brand: Object.assign({}, saved.brand || {}, seed.brand || {}),
+              hero: deepClone(seed.hero || {}),
+              stats: deepClone(seed.stats || []),
+              announce: deepClone(seed.announce || []),
+              quotes: []
+            });
+          }
+          return saved;
+        }
+      }
+    } catch (e) {}
+    return deepClone(seed);
+  }
+
+  let S = loadAdmin();
+  S.ordersStatus = S.ordersStatus || {};
+  S.version = Math.max(+S.version || 1, +(window.PERANS_DATA || {}).version || 2);
+
+  function orders() {
+    try { return JSON.parse(store.get(LS_ORDERS) || '[]'); } catch (e) { return []; }
+  }
+  function setOrders(list) {
+    store.set(LS_ORDERS, JSON.stringify(list));
+  }
+
+  function stamp() {
+    const d = new Date();
+    S.updatedAt = d.toISOString();
+    return d.toLocaleDateString('fa-IR') + ' — ' + d.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function persist(silent) {
+    const when = stamp();
+    try {
+      store.set(LS_ADMIN, JSON.stringify(S));
+      // پیش‌نمایش زنده برای سایت (همین مبدأ)
+      const payload = deepClone(S);
+      delete payload.ordersStatus;
+      store.set(LS_SITE, JSON.stringify(payload));
+    } catch (e) {
+      toast('ذخیره نشد: فضای مرورگر پر است (تصاویر آپلودی زیاد؟)', 'err');
+      return;
+    }
+    $('#lastSaved').textContent = 'آخرین ذخیره: ' + when;
+    broadcast();
+    if (!silent) toast('تغییرات ذخیره و روی سایت اعمال شد', 'ok');
+  }
+
+  /* اعلام تغییر به سایتِ باز در همان مرورگر */
+  function broadcast() {
+    try { new BroadcastChannel('perans-cms').postMessage({ type: 'save', at: Date.now() }); } catch (e) {}
+  }
+
+  /* ------------------------------------------------------------------ toast */
+  function toast(msg, kind) {
+    const t = document.createElement('div');
+    t.className = 'toast ' + (kind || 'ok');
+    t.innerHTML = ICO(kind === 'err' ? 'x' : 'check') + '<span>' + esc(msg) + '</span>';
+    $('#toasts').appendChild(t);
+    setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 400); }, 2600);
+  }
+
+  /* ------------------------------------------------------------------ auth */
+  function simpleHash(str) {
+    let h = 5381;
+    for (let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) | 0;
+    return 'h' + (h >>> 0).toString(16);
+  }
+  async function hash(str) {
+    try {
+      if (window.crypto && crypto.subtle) {
+        const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+        return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
+      }
+    } catch (e) {}
+    return simpleHash(str);
+  }
+  function authRecord() {
+    try { return JSON.parse(store.get(LS_AUTH) || 'null'); } catch (e) { return null; }
+  }
+  async function ensureAuth() {
+    if (authRecord()) return;
+    const h = await hash(DEFAULT_PW);
+    store.set(LS_AUTH, JSON.stringify({ hash: h, at: Date.now() }));
+  }
+  function sessionValid() {
+    try {
+      const s = JSON.parse(store.get(LS_SESSION) || 'null');
+      return !!(s && s.exp > Date.now());
+    } catch (e) { return false; }
+  }
+
+  /* ------------------------------------------------------------------ nav */
+  const VIEWS = {
+    dash: ['داشبورد', 'نمای کلی فروشگاه'],
+    products: ['محصولات', 'افزودن، ویرایش و قیمت‌گذاری محصولات'],
+    orders: ['سفارش‌ها', 'سفارش‌های ثبت‌شده در سایت'],
+    cats: ['دسته‌بندی‌ها', 'ساختار دسته‌های فروشگاه'],
+    content: ['محتوای صفحه', 'متن‌های صفحه‌ی اصلی و بخش‌های ثابت'],
+    commerce: ['فروش و تخفیف', 'هزینه ارسال، سقف ارسال رایگان و کدهای تخفیف'],
+    settings: ['تنظیمات و تماس', 'اطلاعات فروشگاه و رمز عبور پنل'],
+    backup: ['پشتیبان‌گیری', 'دریافت و بازگردانی داده‌های سایت']
+  };
+
+  let current = 'dash';
+
+  function go(view) {
+    current = view;
+    $$('.nav__item').forEach((b) => b.classList.toggle('on', b.dataset.view === view));
+    $$('.view').forEach((v) => v.classList.toggle('on', v.id === 'view-' + view));
+    const t = VIEWS[view] || ['', ''];
+    $('#pageTitle').textContent = t[0];
+    $('#pageSub').textContent = t[1];
+    render();
+    closeSide();
+  }
+
+  function render() {
+    $('#navProducts').textContent = num(S.products.length);
+    $('#navOrders').textContent = num(orders().length);
+    const fn = { dash: renderDash, products: renderProducts, orders: renderOrders, cats: renderCats, content: renderContent, commerce: renderCommerce, settings: renderSettings, backup: renderBackup }[current];
+    if (fn) fn();
+  }
+
+  /* ------------------------------------------------------------------ dashboard */
+  function renderDash() {
+    const os = orders();
+    const revenue = os.reduce((a, o) => a + (+o.total || 0), 0);
+    const newOnes = os.filter((o) => (S.ordersStatus[o.id] || o.status || 'new') === 'new').length;
+
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      const cnt = os.filter((o) => (o.date || '').slice(0, 10) === key).length;
+      days.push({ label: d.toLocaleDateString('fa-IR', { weekday: 'short' }), n: cnt });
+    }
+    const max = Math.max(1, ...days.map((d) => d.n));
+
+    const recent = os.slice(0, 5);
+
+    $('#view-dash').innerHTML =
+      '<div class="kpis">' +
+        kpi('box', 'gold', S.products.length, 'محصول در فروشگاه', 'در ' + num(S.categories.length - 1) + ' دسته', 0) +
+        kpi('cart', 'green', os.length, 'سفارش ثبت‌شده', newOnes ? num(newOnes) + ' سفارش جدید' : 'همه بررسی شده', 1) +
+        kpi('tag', 'amber', revenue, 'مجموع فروش', 'همه‌ی سفارش‌ها', 2, true) +
+      '</div>' +
+      '<div class="grid-2">' +
+        '<div class="card"><div class="card__head"><div><h3>سفارش‌های هفت روز گذشته</h3><p>تعداد سفارش ثبت‌شده در هر روز</p></div>' +
+          '<div class="sp"><button class="btn btn--ghost btn--sm" data-act="seed-orders">' + ICO('plus') + ' سفارش نمونه</button></div></div>' +
+          '<div class="card__body"><div class="chart">' +
+            days.map((d, i) => '<div class="chart__col"><b>' + (d.n ? num(d.n) : '') + '</b><div class="chart__bar" style="height:' + Math.round((d.n / max) * 100) + '%;--i:' + i + '"></div><small>' + esc(d.label) + '</small></div>').join('') +
+          '</div></div></div>' +
+        '<div class="card"><div class="card__head"><div><h3>میان‌بُرها</h3><p>کارهای پرکاربرد</p></div></div><div class="card__body" style="display:grid;gap:9px">' +
+          '<button class="btn btn--gold" data-act="quick-new">' + ICO('plus') + ' افزودن محصول جدید</button>' +
+          '<button class="btn btn--ghost" data-goto="content">' + ICO('edit') + ' ویرایش متن صفحه‌ی اول</button>' +
+          '<button class="btn btn--ghost" data-goto="commerce">' + ICO('tag') + ' ساخت کد تخفیف</button>' +
+          '<button class="btn btn--ghost" data-goto="backup">' + ICO('down') + ' دریافت فایل داده‌ی سایت</button>' +
+        '</div></div>' +
+      '</div>' +
+      '<div class="card" style="margin-top:14px"><div class="card__head"><div><h3>آخرین سفارش‌ها</h3><p>۵ سفارش اخیر</p></div>' +
+        '<div class="sp"><button class="btn btn--ghost btn--sm" data-goto="orders">همه سفارش‌ها</button></div></div>' +
+        (recent.length ? ordersTable(recent, true) : '<div class="empty">' + ICO('cart') + '<div>هنوز سفارشی ثبت نشده — با دکمه‌ی «سفارش نمونه» یکی بسازید.</div></div>') +
+      '</div>';
+  }
+
+  function kpi(ico, cls, value, label, sub, i, isMoney) {
+    return '<div class="kpi k-' + cls + '" style="--i:' + i + '"><div class="kpi__top">' +
+      '<span class="kpi__ico">' + ICO(ico) + '</span><i class="trend">' + esc(sub) + '</i></div>' +
+      '<b class="num">' + (isMoney ? num(Math.round(value / 1000000)) + '<small style="font-size:13px;font-weight:700"> م.ت</small>' : num(value)) + '</b>' +
+      '<span class="lbl">' + esc(label) + '</span></div>';
+  }
+
+  /* ------------------------------------------------------------------ products */
+  let pQuery = '', pCat = 'all';
+
+  function renderProducts() {
+    const list = S.products.filter((p) => {
+      const okQ = !pQuery || (p.name + ' ' + p.id + ' ' + (p.tags || []).join(' ')).toLowerCase().includes(pQuery.toLowerCase());
+      const okC = pCat === 'all' || p.cat === pCat;
+      return okQ && okC;
+    });
+
+    $('#view-products').innerHTML =
+      '<div class="toolbar">' +
+        '<div class="search">' + ICO('search') + '<input id="pSearch" placeholder="جستجو در محصولات…" value="' + esc(pQuery) + '"></div>' +
+        '<select id="pCat"><option value="all">همه دسته‌ها</option>' +
+          S.categories.filter((c) => c.id !== 'all').map((c) => '<option value="' + esc(c.id) + '"' + (pCat === c.id ? ' selected' : '') + '>' + esc(c.name) + '</option>').join('') +
+        '</select>' +
+        '<button class="btn btn--gold" data-act="quick-new">' + ICO('plus') + ' محصول جدید</button>' +
+      '</div>' +
+      '<div class="card tablewrap">' +
+        (list.length ?
+          '<table><thead><tr><th>محصول</th><th>دسته</th><th>قیمت</th><th>تخفیف</th><th>امتیاز</th><th>برچسب</th><th></th></tr></thead><tbody>' +
+          list.map((p) =>
+            '<tr><td><div class="cellpro"><img class="thumb" src="' + esc(imgOf(p.img)) + '" alt=""><div><b>' + esc(p.name) + '</b><small>' + esc(p.id) + '</small></div></div></td>' +
+            '<td><span class="tag b">' + esc(catName(p.cat)) + '</span></td>' +
+            '<td>' + num(p.price) + '</td>' +
+            '<td>' + (p.old ? '<span class="tag g">' + num(Math.round((1 - p.price / p.old) * 100)) + '٪</span>' : '<span class="muted">—</span>') + '</td>' +
+            '<td>' + num(p.rating || 0) + ' <span class="muted" style="font-size:10px">(' + num(p.reviews || 0) + ')</span></td>' +
+            '<td>' + (p.badge ? '<span class="tag ' + (p.badgeClass === 'sale' ? 'r' : p.badgeClass === 'new' ? 'g' : 'a') + '">' + esc(p.badge) + '</span>' : '<span class="muted">—</span>') + '</td>' +
+            '<td><div class="rowact">' +
+              '<button class="mini" data-act="edit-product" data-id="' + esc(p.id) + '" title="ویرایش">' + ICO('edit') + '</button>' +
+              '<button class="mini" data-act="dup-product" data-id="' + esc(p.id) + '" title="کپی">' + ICO('copy') + '</button>' +
+              '<button class="mini del" data-act="del-product" data-id="' + esc(p.id) + '" title="حذف">' + ICO('trash') + '</button>' +
+            '</div></td></tr>').join('') +
+          '</tbody></table>'
+          : '<div class="empty">' + ICO('box') + '<div>محصولی با این فیلتر پیدا نشد.</div></div>') +
+      '</div>';
+
+    const s = $('#pSearch'), c = $('#pCat');
+    if (s) s.addEventListener('input', (e) => { pQuery = e.target.value; renderProducts(); $('#pSearch').focus(); });
+    if (c) c.addEventListener('change', (e) => { pCat = e.target.value; renderProducts(); });
+  }
+
+  function catName(id) { const c = S.categories.find((x) => x.id === id); return c ? c.name : id; }
+
+  function productModal(id) {
+    const isNew = !id;
+    const p = isNew
+      ? { id: 'new-' + Math.random().toString(36).slice(2, 6), name: '', cat: (S.categories[1] || {}).id || 'modern', img: 'p1', price: 0, old: null, rating: 4.8, reviews: 0, badge: '', badgeClass: '', colors: [], desc: '', tags: [], specs: {} }
+      : deepClone(S.products.find((x) => x.id === id));
+
+    const specsRows = Object.entries(p.specs || {}).map(([k, v], i) =>
+      '<div class="specrow" style="display:grid;grid-template-columns:1fr 1.4fr auto;gap:8px;margin-bottom:8px">' +
+        '<input data-spec-k placeholder="عنوان" value="' + esc(k) + '"><input data-spec-v placeholder="مقدار" value="' + esc(v) + '">' +
+        '<button class="mini del" type="button" data-act="del-spec">' + ICO('trash') + '</button></div>').join('');
+
+    openModal(
+      '<div class="modal__head"><div><h3>' + (isNew ? 'محصول جدید' : 'ویرایش محصول') + '</h3><p style="margin:2px 0 0;font-size:11.5px;color:var(--muted)">شناسه: ' + esc(p.id) + '</p></div>' +
+        '<button class="x" data-close style="margin-inline-start:auto">' + ICO('x') + '</button></div>' +
+      '<div class="modal__body"><div class="formgrid">' +
+        field('نام محصول', '<input data-k="name" value="' + esc(p.name) + '">', 'full') +
+        field('دسته', '<select data-k="cat">' + S.categories.filter((c) => c.id !== 'all').map((c) => '<option value="' + esc(c.id) + '"' + (p.cat === c.id ? ' selected' : '') + '>' + esc(c.name) + '</option>').join('') + '</select>') +
+        field('تصویر', '<select data-k="img">' + IMG_LIB.map((k) => '<option value="' + k + '"' + (p.img === k ? ' selected' : '') + '>' + k + '.jpg</option>').join('') + '</select><small>یا تصویر جدید آپلود کنید</small><input type="file" accept="image/*" id="imgUp" style="margin-top:6px">') +
+        field('قیمت (تومان)', '<input data-k="price" type="number" value="' + (+p.price || 0) + '">') +
+        field('قیمت قبل از تخفیف', '<input data-k="old" type="number" value="' + (p.old || '') + '" placeholder="خالی = بدون تخفیف">') +
+        field('امتیاز (۰ تا ۵)', '<input data-k="rating" type="number" step="0.1" min="0" max="5" value="' + (+p.rating || 0) + '">') +
+        field('تعداد نظر', '<input data-k="reviews" type="number" value="' + (+p.reviews || 0) + '">') +
+        field('برچسب', '<input data-k="badge" value="' + esc(p.badge) + '" placeholder="مثلاً پرفروش">') +
+        field('رنگ برچسب', '<select data-k="badgeClass"><option value=""' + (!p.badgeClass ? ' selected' : '') + '>طلایی</option><option value="sale"' + (p.badgeClass === 'sale' ? ' selected' : '') + '>قرمز (تخفیف)</option><option value="new"' + (p.badgeClass === 'new' ? ' selected' : '') + '>سبز (جدید)</option></select>') +
+        field('توضیحات', '<textarea data-k="desc">' + esc(p.desc) + '</textarea>', 'full') +
+        field('تگ‌ها (با کاما جدا کنید)', '<input data-k="tags" value="' + esc((p.tags || []).join('، ')) + '">', 'full') +
+        field('رنگ‌ها (کد hex با کاما)', '<input data-k="colors" value="' + esc((p.colors || []).join(', ')) + '" placeholder="#123f34, #b58a5c">', 'full') +
+        '<div class="full"><div class="hr"></div><div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px">' +
+          '<b style="font-size:12.5px">مشخصات فنی</b><button class="btn btn--ghost btn--sm" type="button" data-act="add-spec">' + ICO('plus') + ' ردیف</button></div>' +
+          '<div id="specs">' + specsRows + '</div></div>' +
+      '</div></div>' +
+      '<div class="modal__foot"><button class="btn btn--ghost" data-close>انصراف</button>' +
+        '<button class="btn btn--gold" data-act="save-product" data-id="' + esc(p.id) + '" data-new="' + (isNew ? '1' : '') + '">' + ICO('save') + ' ذخیره محصول</button></div>'
+    );
+
+    const up = $('#imgUp');
+    if (up) up.addEventListener('change', (e) => {
+      const f = e.target.files && e.target.files[0];
+      if (!f) return;
+      const r = new FileReader();
+      r.onload = () => {
+        let sel = $('[data-k="img"]');
+        sel.outerHTML = '<input type="hidden" data-k="img" value="' + r.result + '"><div style="margin-top:8px"><img src="' + r.result + '" style="width:100%;max-height:110px;object-fit:cover;border-radius:10px"></div>';
+        toast('تصویر بارگذاری شد', 'ok');
+      };
+      r.readAsDataURL(f);
+    });
+  }
+
+  function field(label, inner, cls) {
+    return '<div class="f ' + (cls || '') + '"><label>' + esc(label) + '</label>' + inner + '</div>';
+  }
+
+  function saveProduct(id, isNew) {
+    const box = $('#modalBox');
+    const get = (k) => { const el = box.querySelector('[data-k="' + k + '"]'); return el ? el.value : ''; };
+    const specs = {};
+    $$('#specs .specrow', box).forEach((row) => {
+      const k = row.querySelector('[data-spec-k]').value.trim();
+      const v = row.querySelector('[data-spec-v]').value.trim();
+      if (k) specs[k] = v;
+    });
+    const obj = {
+      id,
+      name: get('name').trim() || 'محصول بدون نام',
+      cat: get('cat'),
+      img: get('img') || 'p1',
+      price: +get('price') || 0,
+      old: +get('old') || null,
+      rating: Math.min(5, Math.max(0, +get('rating') || 0)),
+      reviews: +get('reviews') || 0,
+      badge: get('badge').trim(),
+      badgeClass: get('badgeClass'),
+      colors: get('colors').split(/[,،]/).map((s) => s.trim()).filter(Boolean),
+      desc: get('desc').trim(),
+      tags: get('tags').split(/[,،]/).map((s) => s.trim()).filter(Boolean),
+      specs
+    };
+    if (isNew) S.products.unshift(obj);
+    else S.products = S.products.map((p) => (p.id === id ? obj : p));
+    persist();
+    closeModal();
+    render();
+  }
+
+  /* ------------------------------------------------------------------ orders */
+  const STATUS = { new: ['جدید', 'a'], processing: ['در حال آماده‌سازی', 'b'], sent: ['ارسال شده', 'g'], done: ['تحویل شده', 'g'], canceled: ['لغو شده', 'r'] };
+
+  function ordersTable(list, compact) {
+    return '<div class="tablewrap"><table><thead><tr><th>شماره</th><th>مشتری</th><th>مبلغ</th><th>تاریخ</th><th>وضعیت</th>' + (compact ? '' : '<th></th>') + '</tr></thead><tbody>' +
+      list.map((o) => {
+        const st = S.ordersStatus[o.id] || o.status || 'new';
+        const s0 = STATUS[st] || STATUS.new;
+        return '<tr><td><b>' + esc(o.id) + '</b></td>' +
+          '<td><div class="cellpro"><div><b>' + esc(o.name || '—') + '</b><small>' + esc(o.phone || '') + ' · ' + esc(o.city || '') + '</small></div></div></td>' +
+          '<td>' + num(o.total || 0) + '</td>' +
+          '<td class="muted" style="font-size:11px">' + esc(new Date(o.date || Date.now()).toLocaleDateString('fa-IR')) + '</td>' +
+          '<td>' + (compact
+            ? '<span class="tag ' + s0[1] + '">' + s0[0] + '</span>'
+            : '<select data-act="order-status" data-id="' + esc(o.id) + '">' + Object.keys(STATUS).map((k) => '<option value="' + k + '"' + (st === k ? ' selected' : '') + '>' + STATUS[k][0] + '</option>').join('') + '</select>') +
+          '</td>' + (compact ? '' : '<td><div class="rowact"><button class="mini" data-act="order-view" data-id="' + esc(o.id) + '">' + ICO('eye') + '</button><button class="mini del" data-act="order-del" data-id="' + esc(o.id) + '">' + ICO('trash') + '</button></div></td>') + '</tr>';
+      }).join('') + '</tbody></table></div>';
+  }
+
+  function renderOrders() {
+    const os = orders();
+    $('#view-orders').innerHTML =
+      '<div class="toolbar"><div class="search">' + ICO('search') + '<input id="oS" placeholder="جستجوی شماره یا نام مشتری…"></div>' +
+        '<button class="btn btn--ghost btn--sm" data-act="export-orders">' + ICO('down') + ' خروجی CSV</button>' +
+        '<button class="btn btn--ghost btn--sm" data-act="seed-orders">' + ICO('plus') + ' سفارش نمونه</button></div>' +
+      '<div class="card">' + (os.length ? ordersTable(os) : '<div class="empty">' + ICO('cart') + '<div>هنوز سفارشی در این مرورگر ثبت نشده.</div></div>') + '</div>';
+    const s = $('#oS');
+    if (s) s.addEventListener('input', () => {
+      const q = s.value.toLowerCase();
+      const f = os.filter((o) => (o.id + o.name + o.phone).toLowerCase().includes(q));
+      $('.card', $('#view-orders')).innerHTML = f.length ? ordersTable(f) : '<div class="empty">' + ICO('cart') + '<div>سفارشی پیدا نشد.</div></div>';
+      s.focus();
+    });
+  }
+
+  /* ------------------------------------------------------------------ categories */
+  function renderCats() {
+    $('#view-cats').innerHTML =
+      '<div class="card"><div class="card__head"><div><h3>دسته‌بندی محصولات</h3><p>شناسه‌ی لاتین برای آدرس‌ها استفاده می‌شود</p></div>' +
+        '<div class="sp"><button class="btn btn--gold btn--sm" data-act="add-cat">' + ICO('plus') + ' دسته جدید</button></div></div>' +
+      '<div class="card__body" style="display:grid;gap:9px">' +
+        S.categories.map((c, i) =>
+          '<div style="display:grid;grid-template-columns:1fr 1.2fr auto;gap:10px;align-items:center">' +
+            '<input value="' + esc(c.id) + '" data-cat-id="' + i + '"' + (c.id === 'all' ? ' disabled' : '') + ' style="padding:9px 12px;border-radius:11px;border:1px solid var(--line);background:#fffdf9">' +
+            '<input value="' + esc(c.name) + '" data-cat-name="' + i + '" style="padding:9px 12px;border-radius:11px;border:1px solid var(--line);background:#fffdf9">' +
+            (c.id === 'all'
+              ? '<span class="tag b">ثابت</span>'
+              : '<button class="mini del" data-act="del-cat" data-id="' + esc(c.id) + '">' + ICO('trash') + '</button>') +
+          '</div>').join('') +
+      '</div>' +
+      '<div class="modal__foot" style="position:static;background:transparent;border-top:1px solid var(--line-soft)">' +
+        '<button class="btn btn--gold" data-act="save-cats">' + ICO('save') + ' ذخیره دسته‌بندی‌ها</button></div></div>';
+  }
+
+  /* ------------------------------------------------------------------ content */
+  function renderContent() {
+    const H = S.hero || {}, B = S.brand || {};
+    $('#view-content').innerHTML =
+      '<div class="sectiongrid">' +
+      '<div class="card"><div class="card__head"><div><h3>بخش هیرو (بالای صفحه‌ی اصلی)</h3><p>همان چیزی که مشتری اول می‌بیند</p></div></div><div class="card__body">' +
+        '<div class="formgrid">' +
+          field('برچسب بالای تیتر', '<input data-bind="hero.badge" value="' + esc(H.badge) + '">', 'full') +
+          field('خط اول تیتر', '<input data-bind="hero.t1" value="' + esc(H.t1) + '">') +
+          field('خط دوم تیتر', '<input data-bind="hero.t2" value="' + esc(H.t2) + '">') +
+          field('خط سوم (طلایی)', '<input data-bind="hero.t3" value="' + esc(H.t3) + '">') +
+          field('متن معرفی', '<textarea data-bind="hero.lead">' + esc(H.lead) + '</textarea>', 'full') +
+        '</div></div></div>' +
+
+      '<div class="card"><div class="card__head"><div><h3>کارت‌های هیرو</h3><p>چهار دسته‌ای که کنار دکمه‌ها دیده می‌شوند</p></div></div><div class="card__body">' +
+        '<div class="formgrid">' + (S.stats || []).map((st, i) =>
+          field('عنوان ' + num(i + 1), '<input data-bind="stats.' + i + '.value" value="' + esc(st.value) + '">') +
+          field('توضیح ' + num(i + 1), '<input data-bind="stats.' + i + '.label" value="' + esc(st.label) + '">')).join('') + '</div></div></div>' +
+
+      '<div class="card"><div class="card__head"><div><h3>نوار اطلاعیه‌ی بالای سایت</h3><p>به‌ترتیب نمایش داده می‌شوند</p></div>' +
+        '<div class="sp"><button class="btn btn--ghost btn--sm" data-act="add-ann">' + ICO('plus') + ' افزودن</button></div></div>' +
+        '<div class="card__body" style="display:grid;gap:8px">' + (S.announce || []).map((t, i) =>
+          '<div style="display:grid;grid-template-columns:1fr auto;gap:8px"><input data-bind="announce.' + i + '" value="' + esc(t) + '" style="padding:10px 12px;border-radius:11px;border:1px solid var(--line);background:#fffdf9">' +
+          '<button class="mini del" data-act="del-ann" data-i="' + i + '">' + ICO('trash') + '</button></div>').join('') + '</div></div>' +
+
+      '<div class="card"><div class="card__head"><div><h3>برند و اطلاعات تماس</h3><p>در فوتر، صفحه‌ی تماس و هدر استفاده می‌شود</p></div></div><div class="card__body"><div class="formgrid">' +
+        field('نام فارسی', '<input data-bind="brand.name" value="' + esc(B.name) + '">') +
+        field('نام لاتین', '<input data-bind="brand.en" value="' + esc(B.en) + '">') +
+        field('تلفن (نمایش)', '<input data-bind="brand.phone" value="' + esc(B.phone) + '">') +
+        field('تلفن (لینک)', '<input data-bind="brand.phoneRaw" value="' + esc(B.phoneRaw) + '">') +
+        field('موبایل', '<input data-bind="brand.mobile" value="' + esc(B.mobile) + '">') +
+        field('ایمیل', '<input data-bind="brand.email" value="' + esc(B.email) + '">') +
+        field('نشانی', '<input data-bind="brand.address" value="' + esc(B.address) + '" class="full">', 'full') +
+        field('ساعات کاری', '<input data-bind="brand.hours" value="' + esc(B.hours) + '">', 'full') +
+      '</div></div></div>' +
+
+      '<div style="display:flex;gap:10px;justify-content:flex-end">' +
+        '<button class="btn btn--ghost" data-act="reload-content">بازخوانی</button>' +
+        '<button class="btn btn--gold" data-act="save-content">' + ICO('save') + ' ذخیره محتوا</button></div>' +
+      '</div>';
+  }
+
+  /* ------------------------------------------------------------------ commerce */
+  function renderCommerce() {
+    const C = S.commerce || {};
+    $('#view-commerce').innerHTML =
+      '<div class="sectiongrid">' +
+      '<div class="card"><div class="card__head"><div><h3>ارسال و نصب</h3><p>در محاسبه‌ی سبد خرید استفاده می‌شود</p></div></div><div class="card__body"><div class="formgrid">' +
+        field('هزینه‌ی ارسال (تومان)', '<input data-bind="commerce.shipping" type="number" value="' + (+C.shipping || 0) + '">') +
+        field('سقف ارسال رایگان (تومان)', '<input data-bind="commerce.threshold" type="number" value="' + (+C.threshold || 0) + '">') +
+      '</div><div style="margin-top:14px"><button class="btn btn--gold" data-act="save-commerce">' + ICO('save') + ' ذخیره</button></div></div></div>' +
+
+      '<div class="card"><div class="card__head"><div><h3>کدهای تخفیف</h3><p>درصد تخفیف روی جمع سبد</p></div>' +
+        '<div class="sp"><button class="btn btn--gold btn--sm" data-act="add-coupon">' + ICO('plus') + ' کد جدید</button></div></div>' +
+        '<div class="card__body"><div class="tablewrap"><table><thead><tr><th>کد</th><th>درصد</th><th></th></tr></thead><tbody>' +
+          (Object.entries(C.coupons || {}).map(([code, pct]) =>
+            '<tr><td><b style="letter-spacing:.08em">' + esc(code) + '</b></td><td><span class="tag g">' + num(Math.round(pct * 100)) + '٪</span></td>' +
+            '<td><div class="rowact"><button class="mini del" data-act="del-coupon" data-code="' + esc(code) + '">' + ICO('trash') + '</button></div></td></tr>').join('') ||
+          '<tr><td colspan="3"><div class="empty">کد تخفیفی ندارید.</div></td></tr>') +
+        '</tbody></table></div></div></div>' +
+      '</div>';
+  }
+
+  /* ------------------------------------------------------------------ settings */
+  function renderSettings() {
+    $('#view-settings').innerHTML =
+      '<div class="sectiongrid">' +
+      '<div class="card"><div class="card__head"><div><h3>شبکه‌های اجتماعی</h3><p>لینک‌های فوتر</p></div></div><div class="card__body"><div class="formgrid">' +
+        field('اینستاگرام (تنها شبکه‌ی اجتماعی)', '<input data-bind="brand.instagram" value="' + esc(S.brand.instagram || '') + '" placeholder="https://instagram.com/PERANS_FURNITURE">') +
+        field('واتس‌اپ', '<input data-bind="brand.whatsapp" value="' + esc(S.brand.whatsapp || '') + '">') +
+        field('تلگرام', '<input data-bind="brand.telegram" value="' + esc(S.brand.telegram || '') + '">') +
+        field('سال شروع فعالیت', '<input data-bind="brand.since" value="' + esc(S.brand.since || '') + '">') +
+      '</div><div style="margin-top:14px"><button class="btn btn--gold" data-act="save-brand">' + ICO('save') + ' ذخیره</button></div></div></div>' +
+
+      '<div class="card"><div class="card__head"><div><h3>رمز عبور پنل</h3><p>رمز پیش‌فرض: ' + DEFAULT_PW + ' — همین حالا عوضش کنید</p></div></div>' +
+        '<div class="card__body"><div class="formgrid">' +
+          field('رمز فعلی', '<input type="password" id="pwOld" placeholder="••••••••">') +
+          field('رمز جدید', '<input type="password" id="pwNew" placeholder="حداقل ۶ کاراکتر">') +
+          field('تکرار رمز جدید', '<input type="password" id="pwNew2" placeholder="••••••••">') +
+        '</div><div style="margin-top:14px"><button class="btn btn--dark" data-act="change-pw">' + ICO('lock') + ' تغییر رمز</button></div></div></div>' +
+
+      '<div class="card"><div class="card__head"><div><h3>وضعیت اتصال به سایت</h3><p>پنل و سایت باید از یک دامنه باز شوند</p></div></div>' +
+        '<div class="card__body" style="display:grid;gap:10px">' +
+        '<div class="switchrow"><div><b style="font-size:12.5px">' + (store.ok ? 'ذخیره‌سازی مرورگر فعال است' : 'ذخیره‌سازی مرورگر بسته است') + '</b>' +
+        '<div class="muted" style="font-size:11px">' + (store.ok
+          ? 'با هر ذخیره، سایتِ باز در همین مرورگر فوراً به‌روز می‌شود (بدون رفرش).'
+          : 'این حالت معمولاً وقتی است که فایل داخل iframe یا حالت ناشناس باز شده. فایل‌ها را روی سرور یا مستقیماً در مرورگر باز کنید.') + '</div></div>' +
+        '<label class="switch"><input type="checkbox"' + (store.ok ? ' checked' : '') + ' disabled><i></i></label></div>' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+          '<a class="btn btn--ghost btn--sm" href="perans-furniture-preview.html" target="_blank">' + ICO('eye') + ' باز کردن سایت</a>' +
+          '<button class="btn btn--ghost btn--sm" data-goto="backup">' + ICO('down') + ' دریافت data.js</button>' +
+        '</div></div></div>' +
+      '</div>';
+  }
+
+  /* ------------------------------------------------------------------ backup */
+  function renderBackup() {
+    $('#view-backup').innerHTML =
+      '<div class="sectiongrid">' +
+      '<div class="card"><div class="card__head"><div><h3>دریافت داده‌ها</h3><p>فایل data.js را کنار index.html بگذارید تا تغییرات برای همه اعمال شود</p></div></div>' +
+        '<div class="card__body" style="display:grid;gap:10px">' +
+          '<button class="btn btn--gold" data-act="export-js">' + ICO('down') + ' دریافت فایل data.js (انتشار روی سایت)</button>' +
+          '<button class="btn btn--ghost" data-act="export-json">' + ICO('down') + ' دریافت نسخه‌ی پشتیبان JSON</button>' +
+          '<button class="btn btn--ghost" data-act="copy-js">' + ICO('copy') + ' کپی محتوای data.js در کلیپ‌بورد</button>' +
+        '</div></div>' +
+      '<div class="card"><div class="card__head"><div><h3>بازگردانی</h3><p>فایل پشتیبان را انتخاب کنید</p></div></div>' +
+        '<div class="card__body" style="display:grid;gap:10px">' +
+          '<button class="btn btn--ghost" data-act="import">' + ICO('up') + ' بارگذاری فایل JSON</button>' +
+          '<button class="btn btn--danger" data-act="reset">' + ICO('trash') + ' بازگشت به داده‌های اولیه‌ی سایت</button>' +
+        '</div></div>' +
+      '<div class="card"><div class="card__head"><div><h3>راهنما</h3></div></div><div class="card__body muted" style="font-size:12.5px;line-height:2">' +
+        '۱. هر تغییری که در پنل ذخیره کنید، همان لحظه در مرورگر خودتان روی سایت اعمال می‌شود.<br>' +
+        '۲. برای اینکه همه‌ی بازدیدکننده‌ها تغییر را ببینند، «دریافت data.js» را بزنید و فایل را در ریشه‌ی سایت (کنار index.html) جایگزین کنید.<br>' +
+        '۳. پیش از هر تغییر بزرگ، یک نسخه‌ی JSON بگیرید — با «بارگذاری فایل JSON» همه‌چیز برمی‌گردد.' +
+      '</div></div></div>';
+  }
+
+  /* ------------------------------------------------------------------ modal */
+  function openModal(html) {
+    $('#modalBox').innerHTML = html;
+    $('#modal').classList.add('on');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeModal() {
+    $('#modal').classList.remove('on');
+    document.body.style.overflow = '';
+  }
+
+  /* ------------------------------------------------------------------ helpers for bindings */
+  function setDeep(path, value) {
+    const parts = path.split('.');
+    let o = S;
+    for (let i = 0; i < parts.length - 1; i++) o = o[parts[i]];
+    o[parts[parts.length - 1]] = value;
+  }
+  function saveBound(scope) {
+    $$('[data-bind]', scope).forEach((el) => {
+      let v = el.value;
+      if (el.type === 'number') v = +v || 0;
+      setDeep(el.getAttribute('data-bind'), v);
+    });
+  }
+
+  /* ------------------------------------------------------------------ demo orders */
+  function seedOrders() {
+    const list = orders();
+    const names = ['سارا محمدی', 'رضا اکبری', 'فاطمه رضایی'];
+    const cities = ['بیرجند', 'قائن', 'نهبندان'];
+    for (let i = 0; i < 3; i++) {
+      const p = S.products[i % S.products.length] || { id: 'royal', name: 'مبل رویال', price: 84500000 };
+      const d = new Date(); d.setDate(d.getDate() - i);
+      list.unshift({
+        id: 'PERANS-' + Math.floor(100000 + Math.random() * 899999),
+        date: d.toISOString(), status: 'new',
+        name: names[i], phone: '0915000' + (1000 + i), city: cities[i], address: 'خیابان شهدا',
+        pay: 'online', total: (+p.price || 1000000) + 1200000,
+        items: [{ id: p.id, name: p.name, qty: 1, price: +p.price || 1000000 }]
+      });
+    }
+    setOrders(list);
+    toast('۳ سفارش نمونه ساخته شد', 'ok');
+    render();
+  }
+
+  /* ------------------------------------------------------------------ export */
+  function download(name, text, type) {
+    const blob = new Blob([text], { type: type || 'text/plain;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+  }
+  function dataJs() {
+    const payload = deepClone(S);
+    delete payload.ordersStatus;
+    payload.updatedAt = new Date().toISOString();
+    return '/* PERANS — site data · ویرایش‌شده در پنل مدیریت */\nwindow.PERANS_DATA = ' + JSON.stringify(payload, null, 2) + ';\n';
+  }
+
+  /* ------------------------------------------------------------------ events */
+  document.addEventListener('click', (e) => {
+    const navBtn = e.target.closest('[data-view]');
+    if (navBtn) { go(navBtn.dataset.view); return; }
+    const goBtn = e.target.closest('[data-goto]');
+    if (goBtn) { go(goBtn.dataset.goto); return; }
+    if (e.target.closest('[data-close]')) { closeModal(); return; }
+
+    const btn = e.target.closest('[data-act]');
+    if (!btn) {
+      if (e.target.id === 'modal') closeModal();
+      return;
+    }
+    const act = btn.dataset.act;
+    const id = btn.dataset.id;
+
+    switch (act) {
+      case 'quick-new': productModal(null); break;
+      case 'edit-product': productModal(id); break;
+      case 'dup-product': {
+        const src = S.products.find((p) => p.id === id);
+        if (!src) break;
+        const copy = deepClone(src);
+        copy.id = src.id + '-copy-' + Math.random().toString(36).slice(2, 5);
+        copy.name = src.name + ' (کپی)';
+        S.products.unshift(copy); persist(); render();
+        break;
+      }
+      case 'del-product':
+        if (confirm('این محصول حذف شود؟')) { S.products = S.products.filter((p) => p.id !== id); persist(); render(); }
+        break;
+      case 'save-product': saveProduct(id, btn.dataset.new === '1'); break;
+      case 'add-spec': {
+        const wrap = $('#specs');
+        const row = document.createElement('div');
+        row.className = 'specrow';
+        row.style.cssText = 'display:grid;grid-template-columns:1fr 1.4fr auto;gap:8px;margin-bottom:8px';
+        row.innerHTML = '<input data-spec-k placeholder="عنوان"><input data-spec-v placeholder="مقدار"><button class="mini del" type="button" data-act="del-spec">' + ICO('trash') + '</button>';
+        wrap.appendChild(row);
+        break;
+      }
+      case 'del-spec': btn.closest('.specrow').remove(); break;
+
+      case 'order-status':
+        S.ordersStatus[id] = btn.value; persist(true); toast('وضعیت سفارش به‌روز شد', 'ok');
+        break;
+      case 'order-del':
+        if (confirm('این سفارش حذف شود؟')) { setOrders(orders().filter((o) => o.id !== id)); render(); }
+        break;
+      case 'order-view': {
+        const o = orders().find((x) => x.id === id);
+        if (!o) break;
+        openModal('<div class="modal__head"><div><h3>' + esc(o.id) + '</h3><p style="margin:2px 0 0;font-size:11.5px;color:var(--muted)">' + esc(new Date(o.date).toLocaleString('fa-IR')) + '</p></div>' +
+          '<button class="x" data-close style="margin-inline-start:auto">' + ICO('x') + '</button></div>' +
+          '<div class="modal__body"><div class="formgrid">' +
+            field('مشتری', '<input value="' + esc(o.name) + '" disabled>') +
+            field('تلفن', '<input value="' + esc(o.phone) + '" disabled>') +
+            field('شهر', '<input value="' + esc(o.city) + '" disabled>') +
+            field('روش پرداخت', '<input value="' + esc(o.pay) + '" disabled>') +
+            field('نشانی', '<input value="' + esc(o.address) + '" disabled>', 'full') +
+          '</div><div class="hr"></div><b style="font-size:12.5px">اقلام سفارش</b>' +
+          (o.items || []).map((it) => '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line-soft);font-size:12.5px"><span>' + esc(it.name) + ' × ' + num(it.qty) + '</span><b>' + num(it.price * it.qty) + '</b></div>').join('') +
+          '<div style="display:flex;justify-content:space-between;margin-top:12px;font-size:14px"><b>مبلغ کل</b><b>' + money(o.total) + '</b></div>' +
+          '</div>');
+        break;
+      }
+      case 'seed-orders': seedOrders(); break;
+      case 'export-orders': {
+        const rows = [['شماره', 'تاریخ', 'مشتری', 'تلفن', 'شهر', 'مبلغ', 'وضعیت']].concat(
+          orders().map((o) => [o.id, new Date(o.date).toLocaleDateString('fa-IR'), o.name, o.phone, o.city, o.total, (STATUS[S.ordersStatus[o.id] || o.status || 'new'] || STATUS.new)[0]]));
+        download('perans-orders.csv', '\ufeff' + rows.map((r) => r.join(',')).join('\n'), 'text/csv;charset=utf-8');
+        break;
+      }
+
+      case 'add-cat': {
+        const idd = prompt('شناسه‌ی لاتین دسته (مثلاً outdoor):');
+        if (!idd) break;
+        const nm = prompt('نام فارسی دسته:') || idd;
+        S.categories.push({ id: idd.trim(), name: nm.trim() });
+        persist(); render();
+        break;
+      }
+      case 'del-cat':
+        if (confirm('این دسته حذف شود؟ محصولاتش بدون تغییر می‌مانند.')) { S.categories = S.categories.filter((c) => c.id !== id); persist(); render(); }
+        break;
+      case 'save-cats':
+        S.categories = S.categories.map((c, i) => {
+          const idEl = $('[data-cat-id="' + i + '"]'), nmEl = $('[data-cat-name="' + i + '"]');
+          return { id: (idEl && idEl.value.trim()) || c.id, name: (nmEl && nmEl.value.trim()) || c.name };
+        });
+        persist(); render();
+        break;
+
+      case 'save-content': {
+        const v = $('#view-content');
+        saveBound(v);
+        persist(); renderContent(); toast('محتوای صفحه ذخیره شد', 'ok');
+        break;
+      }
+      case 'reload-content': renderContent(); break;
+      case 'add-ann': S.announce.push('اطلاعیه‌ی جدید…'); persist(); renderContent(); break;
+      case 'del-ann': S.announce.splice(+btn.dataset.i, 1); persist(); renderContent(); break;
+
+      case 'save-commerce': saveBound($('#view-commerce')); persist(); render(); break;
+      case 'add-coupon': {
+        const code = (prompt('کد تخفیف (انگلیسی، مثلاً PERANS20):') || '').trim().toUpperCase();
+        if (!code) break;
+        const pct = +prompt('درصد تخفیف (۱ تا ۹۰):') || 10;
+        S.commerce.coupons = S.commerce.coupons || {};
+        S.commerce.coupons[code] = Math.min(0.9, Math.max(0.01, pct / 100));
+        persist(); render();
+        break;
+      }
+      case 'del-coupon': delete S.commerce.coupons[btn.dataset.code]; persist(); render(); break;
+
+      case 'save-brand': saveBound($('#view-settings')); persist(); render(); break;
+      case 'change-pw': changePw(); break;
+
+      case 'export-js': download('data.js', dataJs(), 'application/javascript;charset=utf-8'); toast('data.js آماده شد', 'ok'); break;
+      case 'export-json': download('perans-backup-' + new Date().toISOString().slice(0, 10) + '.json', JSON.stringify(S, null, 2), 'application/json'); break;
+      case 'copy-js':
+        navigator.clipboard && navigator.clipboard.writeText(dataJs()).then(() => toast('کپی شد', 'ok'), () => toast('کپی نشد', 'err'));
+        break;
+      case 'import': $('#filePick').click(); break;
+      case 'reset':
+        if (confirm('همه‌ی تغییرات پاک و داده‌های اولیه بازگردانی شود؟')) {
+          store.del(LS_ADMIN);
+          S = deepClone(window.PERANS_DATA || window.PERANS_DEFAULTS || FALLBACK);
+          S.ordersStatus = {};
+          persist(); render(); toast('به حالت اولیه برگشت', 'ok');
+        }
+        break;
+    }
+  });
+
+  document.addEventListener('change', (e) => {
+    const sel = e.target.closest('[data-act="order-status"]');
+    if (sel) { S.ordersStatus[sel.dataset.id] = sel.value; persist(true); toast('وضعیت سفارش به‌روز شد', 'ok'); }
+  });
+
+  $('#filePick').addEventListener('change', (e) => {
+    const f = e.target.files && e.target.files[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = () => {
+      try {
+        const data = JSON.parse(String(r.result));
+        if (!data || !Array.isArray(data.products)) throw new Error('bad');
+        S = data; S.ordersStatus = S.ordersStatus || {};
+        persist(); render(); toast('پشتیبان بازگردانی شد', 'ok');
+      } catch (err) { toast('فایل معتبر نیست', 'err'); }
+    };
+    r.readAsText(f);
+    e.target.value = '';
+  });
+
+
+  /* ------------------------------------------------------------------ login flow */
+  const loginEl = $('#login'), appEl = $('#app');
+
+  function showApp() {
+    loginEl.classList.add('leave');
+    setTimeout(() => { loginEl.style.display = 'none'; }, 700);
+    appEl.classList.add('on');
+    $('#lastSaved').textContent = S.updatedAt ? 'آخرین ذخیره: ' + new Date(S.updatedAt).toLocaleDateString('fa-IR') : '—';
+    go('dash');
+  }
+
+  $('#loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const pw = $('#pw').value;
+    const rec = authRecord();
+    const btn = $('#loginBtn');
+    btn.disabled = true; btn.innerHTML = 'در حال بررسی…';
+    const h = await hash(pw);
+    await new Promise((r) => setTimeout(r, 420));
+    if (rec ? h === rec.hash : pw === DEFAULT_PW) {
+      $('#loginErr').textContent = '';
+      const dur = $('#remember').checked ? 12 * 3600e3 : 2 * 3600e3;
+      store.set(LS_SESSION, JSON.stringify({ exp: Date.now() + dur }));
+      showApp();
+    } else {
+      $('#loginCardShake') || loginEl.querySelector('.login__card').classList.add('shake');
+      setTimeout(() => loginEl.querySelector('.login__card').classList.remove('shake'), 600);
+      $('#loginErr').textContent = 'رمز عبور اشتباه است';
+      btn.disabled = false; btn.innerHTML = 'ورود به پنل <svg><use href="#a-out"/></svg>';
+      $('#pw').select();
+    }
+  });
+
+  $('#eye').addEventListener('click', () => {
+    const inp = $('#pw');
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+    $('#eye').style.color = inp.type === 'text' ? 'var(--gold-dp)' : '';
+  });
+
+  $('#logout').addEventListener('click', () => {
+    store.del(LS_SESSION);
+    location.reload();
+  });
+
+  /* top bar */
+  $('#saveAll').addEventListener('click', () => persist());
+  $('#globalSearch').addEventListener('input', (e) => {
+    pQuery = e.target.value;
+    if (current !== 'products') go('products'); else renderProducts();
+  });
+  $('#sideOpen').addEventListener('click', () => $('#side').classList.add('on'));
+  $('#sideClose').addEventListener('click', closeSide);
+  function closeSide() { $('#side').classList.remove('on'); }
+
+  /* keyboard */
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeModal();
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 's') { e.preventDefault(); persist(); }
+  });
+
+  /* ------------------------------------------------------------------ boot */
+  (async function boot() {
+    await ensureAuth();
+    const mq = window.matchMedia('(max-width:900px)');
+    if (mq.matches) $('#sideOpen').style.display = 'grid';
+    mq.addEventListener('change', (m) => { $('#sideOpen').style.display = m.matches ? 'grid' : 'none'; });
+
+    if (sessionValid()) showApp();
+    else setTimeout(() => $('#pw').focus(), 500);
+  })();
+
+  window.PERANS_ADMIN = { get state() { return S; }, persist: () => persist() };
+})();
+
+</script>
+</body>
+</html>

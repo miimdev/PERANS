@@ -1,0 +1,142 @@
+/* ==========================================================================
+   PERANS — هدر و مگامنو (نسخه‌ی ۲)
+   --------------------------------------------------------------------------
+   ۱) رفع باگ اصلی: نوار هدر overflow:hidden داشت و مگامنو را کامل می‌برید.
+      حالا نوار آزاد است و درخشش (sheen) داخل لایه‌ی مخصوص خودش بریده می‌شود.
+   ۲) مگامنو با ماوس، کلیک، لمس، کیبورد و Escape کار می‌کند و در موبایل
+      تمام‌عرض باز می‌شود.
+   ۳) برچسب فعال/هاور منو روی پیل طلایی خوانا شد (متن تیره).
+   ========================================================================== */
+
+/* ---------- ۱. نوار هدر بدون بریدگی ---------- */
+.hd__bar{overflow:visible}
+.hd__bar::before{display:none}          /* درخشش قدیمی روی خود نوار خاموش شد */
+
+.hd__shine{position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none;z-index:0}
+.hd__shine::before{content:"";position:absolute;inset:0;
+  background:linear-gradient(105deg,transparent 32%,rgba(255,255,255,.06) 46%,rgba(255,255,255,.02) 52%,transparent 64%);
+  transform:translateX(-120%);animation:hdSheen 9s var(--ease) 3s infinite}
+@keyframes hdSheen{0%{transform:translateX(-120%)}45%,100%{transform:translateX(120%)}}
+@media(prefers-reduced-motion:reduce){.hd__shine::before{display:none}}
+
+/* ---------- ۳. خوانایی متن روی پیل طلایی ---------- */
+.hd__nav a.is-hovered,.hd__nav a.is-hovered:hover{color:#1a1408}
+.hd__nav a.is-hovered svg{opacity:1}
+.hd__nav a.mega-trigger[aria-expanded="true"]{color:#1a1408}
+.hd__nav a.mega-trigger[aria-expanded="true"] .nav-caret{transform:rotate(180deg)}
+.hd__nav a .nav-caret{transition:transform .4s var(--ease)}
+
+/* ==========================================================================
+   ۲. مگامنو
+   ========================================================================== */
+.hd__mega{
+  position:absolute;top:calc(100% + 14px);inset-inline:0;z-index:60;
+  display:grid;grid-template-columns:minmax(0,1fr) 316px;gap:12px;
+  padding:14px;border-radius:24px;
+  background:linear-gradient(180deg,#221d17 0%,#14110e 55%,#100d0b 100%);
+  border:1px solid rgba(227,201,141,.22);
+  box-shadow:0 48px 90px -46px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.06);
+  -webkit-backdrop-filter:blur(26px) saturate(1.25);backdrop-filter:blur(26px) saturate(1.25);
+  opacity:0;visibility:hidden;transform:translateY(-12px) scale(.985);transform-origin:top center;
+  transition:opacity .32s var(--ease),transform .42s var(--ease),visibility .32s}
+.hd__mega::before{content:"";position:absolute;inset-inline:0;top:-18px;height:18px} /* پل ماوس */
+.hd__mega.on{opacity:1;visibility:visible;transform:none}
+
+.mega__main{display:grid;grid-template-rows:auto 1fr auto;gap:10px;min-width:0}
+
+.mega__head{display:flex;align-items:center;gap:10px;padding:0 4px 2px}
+.mega__kicker{display:inline-flex;align-items:center;gap:7px;flex:none;
+  font-size:11.5px;font-weight:800;color:#e9d7ae;letter-spacing:.02em;
+  padding:6px 11px;border-radius:99px;background:rgba(227,201,141,.12);
+  border:1px solid rgba(227,201,141,.26)}
+.mega__kicker svg{width:14px;height:14px;color:#e3c98d}
+.mega__lead{margin:0;font-size:11.5px;color:#9d9082;line-height:1.7;min-width:0}
+.mega__close{display:none;margin-inline-start:auto;width:32px;height:32px;border-radius:10px;
+  place-items:center;color:#e6d9c2;background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.14);transition:.3s var(--ease)}
+.mega__close svg{width:15px;height:15px}
+.mega__close:hover{background:rgba(227,201,141,.22);color:#fff}
+
+/* دسته‌ها */
+.mega__cats{display:grid;grid-template-columns:1fr 1fr;gap:7px;min-width:0;align-content:start}
+@media(min-width:901px){
+  .mega__cat--all{grid-column:1/-1}
+  .mega__main{grid-template-rows:auto auto 1fr}
+  .mega__foot{margin-top:auto}
+}
+.mega__cat{display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:15px;min-width:0;
+  border:1px solid rgba(255,255,255,.10);background:linear-gradient(160deg,rgba(255,255,255,.062),rgba(255,255,255,.028));
+  transition:background .32s,border-color .32s,transform .32s var(--ease),box-shadow .32s}
+.mega__cat:hover{background:rgba(227,201,141,.13);border-color:rgba(227,201,141,.38);
+  transform:translateY(-2px);box-shadow:0 16px 26px -22px rgba(227,201,141,.9)}
+.mega__cat img{width:48px;height:48px;border-radius:12px;object-fit:cover;flex:none;
+  transition:transform .5s var(--ease-out)}
+.mega__cat:hover img{transform:scale(1.06) rotate(-1.5deg)}
+.mega__cat-txt{min-width:0;display:grid;gap:3px}
+.mega__cat b{font-size:13.2px;color:#f7f1e6;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mega__cat small{font-size:11px;color:#a2957f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mega__cat:hover small{color:#cbbca4}
+.mega__cat .arr{margin-inline-start:auto;color:#e3c98d;opacity:0;transform:translateX(-6px);
+  transition:opacity .3s,transform .35s var(--ease);flex:none}
+.mega__cat .arr svg{width:14px;height:14px}
+.mega__cat:hover .arr{opacity:1;transform:none}
+.mega__allico{width:48px;height:48px;border-radius:12px;display:grid;place-items:center;flex:none;
+  background:rgba(227,201,141,.14);color:#e3c98d}
+.mega__allico svg{width:20px;height:20px}
+.mega__cat--all{grid-column:1/-1}
+
+/* نوار پایین مگامنو */
+.mega__foot{display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+  padding:9px 6px 2px;border-top:1px solid rgba(255,255,255,.07);margin-top:2px}
+.mega__foot-lbl{font-size:10.5px;color:#7d7264;margin-inline-end:2px}
+.mega__foot a{font-size:11.5px;font-weight:700;color:#c9bdab;padding:5px 10px;border-radius:99px;
+  border:1px solid rgba(255,255,255,.1);transition:.3s var(--ease)}
+.mega__foot a:hover{color:#1a1408;background:linear-gradient(120deg,#e3c98d,#d7b877);border-color:transparent}
+.mega__foot-cta{margin-inline-start:auto;display:inline-flex;align-items:center;gap:6px;
+  color:#f0d9a6!important;border-color:rgba(227,201,141,.45)!important}
+.mega__foot-cta svg{width:13px;height:13px}
+
+/* کارت پیشنهاد */
+.mega__promo{position:relative;display:flex;align-items:flex-end;overflow:hidden;isolation:isolate;
+  border-radius:18px;min-height:218px;padding:14px}
+.mega__promo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;
+  transition:transform 1s var(--ease-out)}
+.mega__promo:hover img{transform:scale(1.06)}
+.mega__promo::after{content:"";position:absolute;inset:0;z-index:-1;
+  background:linear-gradient(to top,rgba(12,10,8,.94),rgba(12,10,8,.35) 55%,rgba(12,10,8,.05))}
+.mega__promo-body{display:grid;gap:5px;justify-items:start}
+.mega__promo small{font-size:10.5px;color:#d9b978;font-weight:700;letter-spacing:.04em}
+.mega__promo b{font-size:15.5px;color:#fff;line-height:1.45}
+.mega__promo-price{font-size:11.5px;color:#cbbca4;direction:ltr;unicode-bidi:isolate}
+.mega__promo .btn{margin-top:7px;padding:8px 13px;font-size:11.5px}
+
+/* وقتی مگامنو باز است، پس‌زمینه‌ی موبایل کمی محو می‌شود */
+@media(max-width:900px){
+  body.mega-open::after{content:"";position:fixed;inset:0;z-index:100;
+    background:rgba(10,8,6,.55);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+  .hd__mega{z-index:101;top:calc(100% + 10px);inset-inline:0;
+    grid-template-columns:1fr;gap:8px;padding:10px;border-radius:20px;
+    max-height:min(66vh,520px);overflow-y:auto;overscroll-behavior:contain;
+    transform:translateY(-10px) scale(.995);transform-origin:top center}
+  .hd__mega.on{transform:none}
+  .mega__head{flex-wrap:wrap;padding-top:2px}
+  .mega__lead{flex:1 1 100%;order:3;font-size:11px}
+  .mega__close{display:grid}
+  .mega__cats{grid-template-columns:1fr;gap:6px}
+  .mega__cat{padding:8px}
+  .mega__cat b,.mega__cat small{white-space:nowrap}
+  .mega__promo{display:none}
+  .mega__foot{padding-bottom:4px}
+  .mega__foot-lbl{display:none}
+  .mega__foot a{flex:1 1 auto;text-align:center;justify-content:center}
+  .mega__foot-cta{margin-inline-start:0;flex:1 1 100%}
+}
+
+
+/* لوگوی اصلی PERANS — از فایل ارسالی LOGO.PNG */
+.hd__brand{padding:4px 8px}
+.hd__brand-logo{display:block;width:142px;height:42px;object-fit:contain;object-position:center;filter:drop-shadow(0 6px 12px rgba(0,0,0,.26));transition:transform .5s var(--ease),filter .4s ease}
+.hd__brand:hover{background:rgba(255,255,255,.06)}
+.hd__brand:hover .hd__brand-logo{transform:translateY(-1px) scale(1.035);filter:drop-shadow(0 9px 16px rgba(227,201,141,.16))}
+@media(max-width:700px){.hd__brand{padding:4px}.hd__brand-logo{width:108px;height:34px}}
+.tel-inline{direction:ltr;unicode-bidi:isolate;display:inline-block}
