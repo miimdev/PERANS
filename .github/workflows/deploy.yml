@@ -31,6 +31,9 @@ jobs:
           set -euo pipefail
           test -f perans-furniture/index.html
           test -f perans-furniture/admin/index.html
+          test -f perans-furniture/admin/admin.css
+          test -f perans-furniture/admin/admin.js
+          test -f perans-furniture/js/supabase-client.js
           test -f perans-furniture/js/app.js
           test -f perans-furniture/js/data.js
           rm -rf _site

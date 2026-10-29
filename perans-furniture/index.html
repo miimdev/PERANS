@@ -661,6 +661,19 @@
           <div class="field"><label for="cfMsg">توضیحات</label><textarea id="cfMsg" name="message" placeholder="مثلاً برای نشیمن ۲۵ متری، مبل سه‌نفره‌ی روشن با پایه‌ی چوبی می‌خواهم…"></textarea></div>
           <button type="submit" class="btn btn-gold btn-block mt-18">ارسال درخواست <svg aria-hidden="true"><use href="#i-arrow-left"/></svg></button>
         </form>
+
+        <div class="order-track-box" id="orderTrackBox" style="margin-top:26px;padding-top:22px;border-top:1px solid rgba(20,17,15,.1)">
+          <h3 class="h-panel-sm" style="margin:0 0 6px">پیگیری آنی وضعیت سفارش</h3>
+          <p class="hint-sm" style="margin:0 0 14px">کد سفارش (مثلاً <bdi dir="ltr">PERANS-48219</bdi>) و شماره موبایل هنگام ثبت را وارد کنید.</p>
+          <form id="trackOrderForm" novalidate>
+            <div class="two">
+              <div class="field"><label for="trCode">کد پیگیری سفارش *</label><input id="trCode" dir="ltr" placeholder="PERANS-..." required></div>
+              <div class="field"><label for="trPhone">شماره همراه *</label><input id="trPhone" dir="ltr" inputmode="tel" placeholder="0915..." required></div>
+            </div>
+            <button type="submit" class="btn btn-dark btn-block mt-12">استعلام وضعیت سفارش</button>
+          </form>
+          <div id="trackOrderResult" style="margin-top:12px"></div>
+        </div>
       </div>
       <div data-reveal="left">
         <div class="panel">
@@ -896,7 +909,8 @@
 </div>
 
 <div class="toasts" id="toasts" aria-live="polite"></div>
-<script src="js/data.js?v=7"></script>
-<script src="js/app.js?v=7" defer></script>
+<script src="js/supabase-client.js?v=9"></script>
+<script src="js/data.js?v=9"></script>
+<script src="js/app.js?v=9" defer></script>
 </body>
 </html>

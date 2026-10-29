@@ -279,16 +279,29 @@
     if (Array.isArray(o.products) && o.products.length) PRODUCTS = o.products;
     if (Array.isArray(o.categories) && o.categories.length) CATS = o.categories;
     if (o.commerce) {
-      if (+o.commerce.threshold) THRESHOLD = +o.commerce.threshold;
-      if (+o.commerce.shipping) SHIPPING = +o.commerce.shipping;
+      if (o.commerce.threshold != null && !isNaN(+o.commerce.threshold)) THRESHOLD = +o.commerce.threshold;
+      if (o.commerce.shipping != null && !isNaN(+o.commerce.shipping)) SHIPPING = +o.commerce.shipping;
       if (o.commerce.coupons) COUPONS = o.commerce.coupons;
     }
     Object.keys(o).forEach((k) => { CMS[k] = o[k]; });
     CMS_ON = true;
     applyCms();
+    try { renderHome(); } catch (e) {}
+    try { fillMegaMeta(); } catch (e) {}
     try { route(); } catch (e) {}
     if (!silent) toast('محتوای سایت از پنل مدیریت به‌روز شد');
     return true;
+  }
+
+  async function pullCloudStorefront() {
+    if (!window.PERANS_DB || typeof window.PERANS_DB.getStorefront !== 'function') return;
+    try {
+      const remote = await window.PERANS_DB.getStorefront();
+      if (remote && Array.isArray(remote.products) && remote.products.length) {
+        try { localStorage.setItem('perans_site_data', JSON.stringify(remote)); } catch (e) {}
+        syncCms(true);
+      }
+    } catch (e) {}
   }
 
   function initCmsSync() {
@@ -297,9 +310,14 @@
     });
     try {
       const bc = new BroadcastChannel('perans-cms');
-      bc.onmessage = (e) => { if (!e.data || e.data.type !== 'ping') syncCms(); };
+      bc.onmessage = (e) => {
+        if (!e.data || e.data.type !== 'ping') {
+          if (!syncCms()) pullCloudStorefront();
+        }
+      };
       window.addEventListener('beforeunload', () => { try { bc.close(); } catch (err) {} });
     } catch (e) {}
+    pullCloudStorefront();
   }
 
   /* ثبت سفارش‌ها برای پنل مدیریت */
@@ -838,6 +856,7 @@
         coData.name = $('#coName').value.trim();
         coData.phone = toEn($('#coPhone').value).replace(/[\s-]/g, '');
         coData.city = $('#coCity').value.trim();
+        coData.zip = ($('#coZip') && $('#coZip').value.trim()) || '';
         coData.address = $('#coAddress').value.trim();
         coData.note = $('#coNote').value.trim();
         let ok = true;
@@ -865,13 +884,57 @@
         '</div>' +
         '<div class="modal-actions"><button class="btn btn-ghost" id="coPrev">مرحله قبل</button><button class="btn btn-gold" id="coPay">ثبت و پرداخت</button></div>';
       $('#coPrev').addEventListener('click', () => { coStep = 1; renderCheckout(); });
-      $('#coPay').addEventListener('click', () => {
+      $('#coPay').addEventListener('click', async () => {
+        const payBtn = $('#coPay');
         coData.pay = ($('input[name="pay"]:checked') || {}).value || 'online';
-        coStep = 3; renderCheckout();
+        const { subtotal, discount, shipping, total } = totals();
+        const orderItems = cart.map((it) => {
+          const pr = byId(it.id) || { id: it.id, name: it.id, price: 0 };
+          return { id: pr.id, name: pr.name, qty: it.qty, price: pr.price, color: it.color || '' };
+        });
+        if (payBtn) { payBtn.disabled = true; payBtn.textContent = 'در حال ثبت سفارش…'; }
+        let orderCode = 'PERANS-' + Math.floor(100000 + Math.random() * 899999);
+        if (window.PERANS_DB && typeof window.PERANS_DB.submitOrder === 'function') {
+          try {
+            const res = await window.PERANS_DB.submitOrder({
+              name: coData.name,
+              phone: coData.phone,
+              city: coData.city,
+              postal_code: coData.zip || '',
+              address: coData.address,
+              note: coData.note,
+              pay: coData.pay,
+              coupon: coupon || '',
+              subtotal,
+              discount,
+              shipping,
+              total,
+              items: orderItems
+            });
+            if (res && res.order_code) orderCode = res.order_code;
+          } catch (e) {}
+        }
+        coData.lastOrderCode = orderCode;
+        coData.lastTotal = total;
+        pushOrder({
+          id: orderCode,
+          date: new Date().toISOString(),
+          status: 'new',
+          name: coData.name,
+          phone: coData.phone,
+          city: coData.city,
+          address: coData.address,
+          note: coData.note,
+          pay: coData.pay,
+          total,
+          items: orderItems
+        });
+        coStep = 3;
+        renderCheckout();
       });
     } else {
-      const { total } = totals();
-      const orderNo = 'PERANS-' + toFa(Math.floor(100000 + Math.random() * 899999));
+      const total = coData.lastTotal != null ? coData.lastTotal : totals().total;
+      const orderNo = toFa(coData.lastOrderCode || ('PERANS-' + Math.floor(100000 + Math.random() * 899999)));
       body.innerHTML = '<div class="success">' +
         '<svg class="success-check" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="24" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M15 27l7 7 15-16" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
         '<h3>سفارش شما ثبت شد</h3>' +
@@ -1006,24 +1069,89 @@
   /* ---------- contact form ---------- */
   function initContactForm() {
     const form = $('#contactForm');
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const name = $('#cfName'), phone = $('#cfPhone');
+      const topic = $('#cfTopic'), city = $('#cfCity'), msg = $('#cfMsg');
       let ok = true;
       const mark = (el, bad) => { el.closest('.field').classList.toggle('err', bad); if (bad) ok = false; };
       mark(name, name.value.trim().length < 3);
-      mark(phone, !/^0?9\d{9}$/.test(toEn(phone.value).replace(/[\s-]/g, '')));
+      const cleanPhone = toEn(phone.value).replace(/[\s-]/g, '');
+      mark(phone, !/^0?9\d{9}$/.test(cleanPhone));
       if (!ok) { toast('نام و شماره‌ی تماس را بررسی کنید', false); return; }
+      const submitBtn = form.querySelector('button[type="submit"]');
+      if (submitBtn) submitBtn.disabled = true;
+      if (window.PERANS_DB && typeof window.PERANS_DB.submitMessage === 'function') {
+        try {
+          await window.PERANS_DB.submitMessage({
+            kind: 'consultation',
+            name: name.value.trim(),
+            phone: cleanPhone,
+            topic: topic ? topic.value : 'advice',
+            city: city ? city.value.trim() : '',
+            message: msg ? msg.value.trim() : ''
+          });
+        } catch (err) {}
+      }
+      if (submitBtn) submitBtn.disabled = false;
       toast('درخواست شما ثبت شد؛ به‌زودی تماس می‌گیریم');
       form.reset();
     });
-    $('#nlForm').addEventListener('submit', (e) => {
+    $('#nlForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const input = $('#nlForm input');
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(input.value)) { toast('ایمیل معتبر وارد کنید', false); return; }
+      if (window.PERANS_DB && typeof window.PERANS_DB.submitMessage === 'function') {
+        try {
+          await window.PERANS_DB.submitMessage({
+            kind: 'newsletter',
+            email: input.value.trim(),
+            topic: 'newsletter'
+          });
+        } catch (err) {}
+      }
       toast('عضویت شما ثبت شد؛ کد تخفیف ایمیل می‌شود');
       input.value = '';
     });
+
+    const trackForm = $('#trackOrderForm');
+    if (trackForm) {
+      const statusFa = {
+        new: 'ثبت شده — در انتظار تأیید کارشناس',
+        confirmed: 'تأیید شده — در نوبت آماده‌سازی',
+        processing: 'در حال آماده‌سازی و بسته‌بندی در کارگاه',
+        sent: 'ارسال شده به مقصد مشتری',
+        done: 'تحویل شده به مشتری',
+        canceled: 'لغو شده'
+      };
+      trackForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const code = toEn($('#trCode').value).trim().toUpperCase();
+        const ph = toEn($('#trPhone').value).replace(/[\s-]/g, '');
+        const resEl = $('#trackOrderResult');
+        if (!code || ph.length < 8) {
+          toast('کد پیگیری و شماره همراه را وارد کنید', false);
+          return;
+        }
+        resEl.innerHTML = '<p class="hint-sm">در حال استعلام از سرور…</p>';
+        try {
+          const data = window.PERANS_DB ? await window.PERANS_DB.trackOrder(code, ph) : { found: false };
+          if (!data || !data.found) {
+            resEl.innerHTML = '<div style="padding:12px 14px;border-radius:12px;background:rgba(180,68,47,.1);border:1px solid rgba(180,68,47,.25);font-size:13px">سفارشی با این کد و شماره همراه یافت نشد.</div>';
+            return;
+          }
+          const escHtml = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+          resEl.innerHTML =
+            '<div style="padding:14px 16px;border-radius:14px;background:rgba(18,63,52,.07);border:1px solid rgba(18,63,52,.2);font-size:13px;line-height:1.9">' +
+              '<div><b>وضعیت فعلی:</b> <span style="color:#123f34;font-weight:800">' + escHtml(statusFa[data.status] || data.status) + '</span></div>' +
+              '<div><b>سفارش‌دهنده:</b> ' + escHtml(data.customer_name) + ' (' + escHtml(data.city || '') + ')</div>' +
+              '<div><b>مبلغ کل فاکتور:</b> ' + money(data.total || 0) + '</div>' +
+            '</div>';
+        } catch (err) {
+          resEl.innerHTML = '<div style="padding:12px 14px;border-radius:12px;background:rgba(180,68,47,.1);font-size:13px">خطا در ارتباط با سرور. کمی بعد دوباره تلاش کنید.</div>';
+        }
+      });
+    }
   }
 
   /* ---------- global events ---------- */
