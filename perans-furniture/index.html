@@ -156,7 +156,7 @@
         <a class="hd__icon hd__icon--admin" href="admin/index.html" id="adminBtn" aria-label="ورود مدیران" title="پنل مدیریت" data-magnetic>
           <svg aria-hidden="true"><use href="#i-admin"/></svg>
         </a>
-        <button class="hd__icon" id="cartBtn" aria-label="سبد خرید" data-magnetic>
+        <button class="hd__icon" id="cartBtn" aria-label="لیست سفارش" title="لیست سفارش شما" data-magnetic>
           <svg aria-hidden="true"><use href="#i-cart"/></svg>
           <span class="badge-count" id="cartCount">۰</span>
         </button>
@@ -495,7 +495,7 @@
       <div class="cta-band" data-reveal="zoom">
         <div>
           <h2>۱۰٪ تخفیف اولین سفارش،<br>هدیه‌ی آشنایی ما</h2>
-          <p>کد زیر را در سبد خرید وارد کنید. اعتبار: تا پایان همین ماه — قابل استفاده روی همه‌ی محصولات.</p>
+          <p>کد زیر را در لیست سفارش خود وارد کنید. اعتبار: تا پایان همین ماه — قابل استفاده روی همه‌ی محصولات.</p>
           <span class="cta-code"><svg width="15" height="15" aria-hidden="true"><use href="#i-gift"/></svg> PERANS10</span>
         </div>
         <div class="cta-actions">
@@ -860,7 +860,7 @@
         <span class="ft__made"><svg aria-hidden="true"><use href="#i-sparkle"/></svg>فروشگاه مبلمان در بیرجند</span>
       </div>
       <div class="ft__pays">
-        <span>پرداخت امن</span><span>شاپرک</span><span>ارسال رایگان در بیرجند</span><span>۷ روز بازگشت</span>
+        <span>ثبت سفارش بدون پرداخت آنلاین</span><span>کد پیگیری آنی</span><span>تضمین اصالت کالا</span><span>مشاوره تخصصی چیدمان</span>
       </div>
       <a class="ft__admin" href="admin/index.html" title="پنل مدیریت پرنس">
         <svg aria-hidden="true"><use href="#i-admin"/></svg>
@@ -872,22 +872,22 @@
 
 <button id="toTop" aria-label="بازگشت به بالا"><svg aria-hidden="true"><use href="#i-up"/></svg></button>
 
-<!-- CART DRAWER -->
+<!-- ORDER LIST DRAWER -->
 <div class="scrim" id="scrim"></div>
-<aside class="drawer" id="cartDrawer" aria-label="سبد خرید" aria-hidden="true">
+<aside class="drawer" id="cartDrawer" aria-label="لیست سفارش" aria-hidden="true">
   <div class="drawer-head">
     <div>
-      <b>سبد خرید</b>
-      <small id="cartSubtitle">۰ کالا</small>
+      <b>لیست سفارش شما</b>
+      <small id="cartSubtitle">۰ قلم</small>
     </div>
-    <button class="x-btn" id="cartClose" aria-label="بستن سبد"><svg aria-hidden="true"><use href="#i-close"/></svg></button>
+    <button class="x-btn" id="cartClose" aria-label="بستن لیست سفارش"><svg aria-hidden="true"><use href="#i-close"/></svg></button>
   </div>
   <div class="drawer-body" id="cartBody"></div>
   <div class="drawer-foot" id="cartFoot"></div>
 </aside>
 
-<!-- CHECKOUT MODAL -->
-<div class="modal" id="checkoutModal" role="dialog" aria-modal="true" aria-label="تکمیل خرید">
+<!-- ORDER REGISTRATION MODAL -->
+<div class="modal" id="checkoutModal" role="dialog" aria-modal="true" aria-label="ثبت سفارش و دریافت کد پیگیری">
   <div class="modal-card">
     <button class="x-btn modal-x" id="checkoutClose" aria-label="بستن"><svg aria-hidden="true"><use href="#i-close"/></svg></button>
     <div class="steps" id="coSteps"></div>
@@ -909,8 +909,8 @@
 </div>
 
 <div class="toasts" id="toasts" aria-live="polite"></div>
-<script src="js/supabase-client.js?v=9"></script>
-<script src="js/data.js?v=9"></script>
-<script src="js/app.js?v=9" defer></script>
+<script src="js/supabase-client.js?v=11"></script>
+<script src="js/data.js?v=11"></script>
+<script src="js/app.js?v=11" defer></script>
 </body>
 </html>

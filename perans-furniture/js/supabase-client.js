@@ -1,5 +1,5 @@
 /* ==========================================================================
-   PERANS — Supabase Cloud Client (Zero external CDN dependency)
+   PERANS — Supabase Cloud Client & Bale Bot Bridge (Zero external CDN)
    Project: ideh-pardazan (jmpwryddrxmuwzmbmhsb) · Isolated perans_* namespace
    ========================================================================== */
 (function () {
@@ -73,6 +73,45 @@
     }
   }
 
+  async function edge(slug, payload = {}, timeoutMs = 18000, keepalive = false) {
+    const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    const timer = ctrl ? setTimeout(() => ctrl.abort(), timeoutMs) : null;
+
+    try {
+      const res = await fetch(SUPABASE_URL + '/functions/v1/' + encodeURIComponent(slug), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+        },
+        body: JSON.stringify(payload || {}),
+        keepalive: !!keepalive,
+        signal: ctrl ? ctrl.signal : undefined
+      });
+
+      let data = null;
+      const text = await res.text();
+      if (text) {
+        try { data = JSON.parse(text); } catch (e) { data = { raw: text }; }
+      }
+
+      if (!res.ok || (data && data.ok === false)) {
+        const msg = (data && (data.error || data.message)) || ('خطای سرویس اعلان (' + res.status + ')');
+        throw new Error(msg);
+      }
+      return data;
+    } catch (err) {
+      if (err && err.name === 'AbortError') {
+        throw new Error('مهلت ارتباط با سرویس پیام‌رسان به پایان رسید.');
+      }
+      throw err;
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  }
+
   /* فشرده‌سازی هوشمند تصویر محصول به WebP/JPEG پیش از ذخیره در دیتابیس */
   function compressImageFile(file, maxDim = 1080, quality = 0.82) {
     return new Promise((resolve, reject) => {
@@ -128,13 +167,33 @@
     get latencyMs() { return lastLatencyMs; },
     onStatus(fn) { listeners.add(fn); return () => listeners.delete(fn); },
     rpc,
+    edge,
     compressImageFile,
 
     // Public storefront endpoints
     getStorefront: () => rpc('perans_get_storefront', {}),
-    submitOrder: (payload) => rpc('perans_submit_order', { p_payload: payload }),
+    submitOrder: async (payload) => {
+      const res = await rpc('perans_submit_order', { p_payload: payload });
+      if (res && res.id && res.order_code) {
+        edge('perans-bale-notify', {
+          action: 'notify_order',
+          order_id: res.id,
+          order_code: res.order_code
+        }, 16000, true).catch(() => {});
+      }
+      return res;
+    },
     trackOrder: (orderCode, phone) => rpc('perans_track_order', { p_order_code: orderCode, p_phone: phone }),
-    submitMessage: (payload) => rpc('perans_submit_message', { p_payload: payload }),
+    submitMessage: async (payload) => {
+      const res = await rpc('perans_submit_message', { p_payload: payload });
+      if (res && res.id && payload && payload.kind !== 'newsletter') {
+        edge('perans-bale-notify', {
+          action: 'notify_message',
+          message_id: res.id
+        }, 12000, true).catch(() => {});
+      }
+      return res;
+    },
 
     // Authenticated admin endpoints
     login: (username, password, remember) => rpc('perans_admin_login', {
@@ -150,6 +209,23 @@
     bulkProducts: (token, action, cat, value) => rpc('perans_admin_bulk_products', { p_token: token, p_action: action, p_cat: cat, p_value: value }),
     saveCategories: (token, categories) => rpc('perans_admin_save_categories', { p_token: token, p_categories: categories }),
     saveConfig: (token, payload) => rpc('perans_admin_save_config', { p_token: token, p_payload: payload }),
+    saveBotSettings: (token, payload) => rpc('perans_admin_save_bot_settings', { p_token: token, p_payload: payload }),
+    detectBaleChat: (token, botToken) => edge('perans-bale-notify', {
+      action: 'detect_chat',
+      admin_token: token,
+      bot_token: botToken || ''
+    }, 18000),
+    testBaleBot: (token, botToken, chatId) => edge('perans-bale-notify', {
+      action: 'test_send',
+      admin_token: token,
+      bot_token: botToken || '',
+      chat_id: chatId || ''
+    }, 20000),
+    resendOrderToBale: (token, orderId) => edge('perans-bale-notify', {
+      action: 'resend_order',
+      admin_token: token,
+      order_id: orderId
+    }, 22000),
     updateOrder: (token, id, status, adminNote) => rpc('perans_admin_update_order', { p_token: token, p_id: id, p_status: status, p_admin_note: adminNote }),
     createOrder: (token, order) => rpc('perans_admin_create_order', { p_token: token, p_order: order }),
     deleteOrder: (token, id) => rpc('perans_admin_delete_order', { p_token: token, p_id: id }),
