@@ -6,12 +6,12 @@
 <title>فرماندهی و مدیریت | مبل پرنس (PERANS)</title>
 <meta name="robots" content="noindex,nofollow">
 <link rel="icon" type="image/png" href="perans-furniture/images/LOGO.PNG">
-<link rel="preload" href="../fonts/Vazirmatn.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="perans-furniture/fonts/Vazirmatn.woff2" as="font" type="font/woff2" crossorigin>
 <style>
 /* ==========================================================================
    PERANS — Executive Cloud Admin Command Center (Dark + Light Luxury Themes)
    ========================================================================== */
-@import url("perans-furniture/css/fonts.css");
+@import url("../css/fonts.css");
 
 :root,
 [data-theme="dark"] {
@@ -855,7 +855,7 @@ td .cellpro small { display: block; font-size: 10.5px; color: var(--muted); }
             <i><svg><use href="#a-check"/></svg></i>
             <span>مرا به خاطر بسپار (۱۴ روز)</span>
           </label>
-          <a class="back-site" href="perans-furniture/index.html">بازگشت به سایت ←</a>
+          <a class="back-site" href="../index.html">بازگشت به سایت ←</a>
         </div>
 
         <div class="err" id="loginErr" role="alert"></div>
@@ -987,7 +987,7 @@ td .cellpro small { display: block; font-size: 10.5px; color: var(--muted); }
         <button class="iconbtn" id="themeBtn" title="تغییر پوسته تاریک / روشن">
           <svg id="themeIco"><use href="#a-sun"/></svg>
         </button>
-        <a class="btn btn--ghost btn--sm top__site-btn" href="perans-furniture/index.html" target="_blank" title="مشاهده وب‌سایت زنده">
+        <a class="btn btn--ghost btn--sm top__site-btn" href="../index.html" target="_blank" title="مشاهده وب‌سایت زنده">
           <svg><use href="#a-eye"/></svg>
           <span>مشاهده سایت</span>
         </a>
@@ -1235,12 +1235,13 @@ td .cellpro small { display: block; font-size: 10.5px; color: var(--muted); }
       action: 'ping_rubika',
       api_base: apiBase || ''
     }, 15000),
-    detectRubikaChat: (token, botToken, apiBase) => edge('perans-rubika-notify', {
+    detectRubikaChat: (token, botToken, apiBase, forcePairing) => edge('perans-rubika-notify', {
       action: 'detect_chat',
       admin_token: token,
       bot_token: botToken || '',
-      api_base: apiBase || ''
-    }, 24000),
+      api_base: apiBase || '',
+      force_pairing: !!forcePairing
+    }, 30000),
     testRubikaBot: (token, botToken, chatId, apiBase) => edge('perans-rubika-notify', {
       action: 'test_send',
       admin_token: token,
@@ -3136,42 +3137,110 @@ window.PERANS_DATA = {
     }
   }
 
-  /* ------------------------------------------------------------------ 8.5. Rubika Messenger Bot (Bot API v3) */
+  /* ------------------------------------------------------------------ 8.5. Rubika Messenger Bot (Bot API v3 — Zero-Chat-ID Auto Pairing) */
+  let rubikaRadarTimer = null;
+
+  function stopRubikaRadar() {
+    if (rubikaRadarTimer) {
+      clearInterval(rubikaRadarTimer);
+      rubikaRadarTimer = null;
+    }
+  }
+
+  function startRubikaLiveRadar() {
+    stopRubikaRadar();
+    let ticks = 0;
+    rubikaRadarTimer = setInterval(async () => {
+      ticks++;
+      if (ticks > 120 || currentView !== 'rubika') {
+        stopRubikaRadar();
+        return;
+      }
+      try {
+        const prevChat = (STATE.bot_settings && STATE.bot_settings.rubika_chat_id) || '';
+        const snap = await DB.bootstrap(SESSION_TOKEN);
+        if (snap && snap.bot_settings) {
+          STATE.bot_settings = snap.bot_settings;
+          const nextChat = snap.bot_settings.rubika_chat_id || '';
+          if (nextChat && nextChat !== prevChat) {
+            stopRubikaRadar();
+            renderRubika();
+            toast('عالی! پیام شما در روبیکا دریافت شد و شناسه چت مالک به صورت خودکار متصل و تست گردید!');
+          } else if (!snap.bot_settings.rubika_pairing_active && prevChat) {
+            stopRubikaRadar();
+            renderRubika();
+          }
+        }
+      } catch (_e) {}
+    }, 3000);
+  }
+
   function renderRubika() {
     const BS = STATE.bot_settings || {};
     const isReady = !!(BS.rubika_enabled && BS.has_token && BS.rubika_chat_id);
+    const waitingPairing = !!(BS.has_token && (!BS.rubika_chat_id || BS.rubika_pairing_active));
+    const recentChats = Array.isArray(BS.rubika_recent_chats) ? BS.rubika_recent_chats : [];
+
+    if (waitingPairing && currentView === 'rubika' && !rubikaRadarTimer) {
+      startRubikaLiveRadar();
+    } else if (!waitingPairing && rubikaRadarTimer) {
+      stopRubikaRadar();
+    }
 
     $('#view-rubika').innerHTML =
       '<div class="sectiongrid">' +
         '<div class="hero-strip">' +
           '<div>' +
-            '<h3>اتصال زنده به ربات پیام‌رسان «روبیکا» (ارسال خودکار عکس + پرونده کامل سفارش)</h3>' +
-            '<p>به محض ثبت سفارش توسط مشتری و دریافت کد پیگیری در سایت، <b>تصاویر مبلمان انتخابی + مشخصات کامل مدل، رنگ و ابعاد + اطلاعات ثبت‌کننده و آدرس</b> مستقیماً به پیام‌رسان روبیکای مالک ارسال می‌شود.</p>' +
+            '<h3>اتصال هوشمند به ربات «روبیکا» — بدون نیاز به پیدا کردن دستی شناسه چت!</h3>' +
+            '<p>در <b>روش جدید ربات‌سازی روبیکا (@BotFather)</b> نیازی به ربات‌های قدیمیِ شناسه چت نیست! فقط <b>توکن ربات</b> را وارد کنید و در روبیکا یک پیام (مثلاً <b>سلام</b>) به ربات خود بدهید تا شناسه چت شما <b>به‌صورت کاملاً خودکار</b> دریافت، ذخیره و فعال شود.</p>' +
           '</div>' +
           '<div class="hero-strip__acts" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' +
-            (BS.rubika_share_url ? '<a class="btn btn--ghost btn--sm" href="' + esc(BS.rubika_share_url) + '" target="_blank" rel="noopener">باز کردن ربات در روبیکا</a>' : '') +
+            (BS.rubika_share_url ? '<a class="btn btn--gold btn--sm" href="' + esc(BS.rubika_share_url) + '" target="_blank" rel="noopener">باز کردن ربات در روبیکا ↗</a>' : '') +
             '<span class="tag ' + (isReady ? 'g' : 'a') + '" style="padding:7px 14px;font-size:12px">' +
               (isReady
-                ? ('متصل و فعال' + (BS.rubika_bot_username ? ' · @' + esc(BS.rubika_bot_username) : (BS.rubika_bot_name ? ' · ' + esc(BS.rubika_bot_name) : '')))
-                : 'در انتظار تکمیل توکن / شناسه چت مالک') +
+                ? ('متصل و آماده ارسال سفارش · ' + (BS.rubika_bot_username ? '@' + esc(BS.rubika_bot_username) : esc(BS.rubika_bot_name || 'ربات فعال')))
+                : (BS.has_token ? 'منتظر ارسال اولین پیام «سلام» شما در روبیکا…' : 'فقط توکن ربات را وارد کنید')) +
             '</span>' +
           '</div>' +
         '</div>' +
 
+        (waitingPairing
+          ? '<div class="card" style="border:1.5px solid var(--gold);background:linear-gradient(135deg,rgba(194,163,92,.13),rgba(18,63,52,.08))">' +
+              '<div class="card__body" style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between">' +
+                '<div style="flex:1;min-width:260px">' +
+                  '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">' +
+                    '<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#1fa971;box-shadow:0 0 0 5px rgba(31,169,113,.22)"></span>' +
+                    '<b style="font-size:14px;color:var(--gold)">رادار اتصال خودکار فعال است — فقط ۱ قدم باقی مانده!</b>' +
+                  '</div>' +
+                  '<p style="margin:0;font-size:12.8px;line-height:1.9">' +
+                    'توکن ربات شما ' + (BS.rubika_bot_username ? '(<b dir="ltr">@' + esc(BS.rubika_bot_username) + '</b>) ' : '') + 'تأیید و وب‌هوک زنده روی سرور روبیکا نصب شد. ' +
+                    'همین حالا با گوشی یا نسخه وب روبیکا وارد ربات خود شوید و دکمه <b>شروع (<code dir="ltr">/start</code>)</b> را بزنید یا کلمه <b>«سلام»</b> بفرستید؛ ' +
+                    'در کمتر از ۳ ثانیه شناسه چت جدید شما خودکار ثبت شده و عکس آزمایشی مبل برایتان در روبیکا ارسال می‌شود!' +
+                  '</p>' +
+                '</div>' +
+                '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
+                  (BS.rubika_share_url
+                    ? '<a class="btn btn--gold" href="' + esc(BS.rubika_share_url) + '" target="_blank" rel="noopener">۱. باز کردن ربات در روبیکا و ارسال «سلام» ↗</a>'
+                    : '') +
+                  '<button type="button" class="btn btn--dark" data-act="rubika-check-now">بررسی فوری اتصال</button>' +
+                '</div>' +
+              '</div>' +
+            '</div>'
+          : '') +
+
         '<div class="card">' +
           '<div class="card__head">' +
-            '<div><h3>راهنمای ۳ مرحله‌ای راه‌اندازی ربات در روبیکا (Rubika Bot API v3)</h3><p>کمتر از ۱ دقیقه زمان می‌برد و بدون نیاز به هیچ دانش فنی است</p></div>' +
-            '<button type="button" class="btn btn--ghost btn--sm" data-act="rubika-ping" id="rubikaPingBtn">بررسی ارتباط سرور با روبیکا</button>' +
+            '<div><h3>راه‌اندازی ۲ مرحله‌ای مخصوص روش جدید روبیکا (بدون نیاز به شناسه چت!)</h3><p>حتی دستور <code dir="ltr">/id</code> هم روی ربات خودتان نصب می‌شود تا هر زمان خواستید شناسه هر چت یا گروه را خود ربات به شما بدهد</p></div>' +
+            '<button type="button" class="btn btn--ghost btn--sm" data-act="rubika-ping" id="rubikaPingBtn">تست اتصال سرور با روبیکا</button>' +
           '</div>' +
           '<div class="card__body" style="display:grid;gap:10px;font-size:12.5px">' +
-            '<div style="padding:11px 14px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line-soft)"><b>گام ۱ (ساخت ربات در روبیکا):</b> در اپلیکیشن <b>روبیکا</b> آیدی رسمی <b dir="ltr">@BotFather</b> را جستجو کنید، دستور <code dir="ltr">/newbot</code> را ارسال نمایید، نام ربات (مثلاً «سفارشات مبل پرنس») و یک نام کاربری انگلیسی انتخاب کنید و <b>توکن (Token)</b> دریافتی را در کادر زیر قرار دهید.</div>' +
-            '<div style="padding:11px 14px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line-soft)"><b>گام ۲ (شروع گفتگو با ربات):</b> با حساب روبیکای مالک نمایشگاه وارد ربات تازه ساخته‌شده خود شوید و یک بار دکمه <b>شروع (<code dir="ltr">/start</code>)</b> را بزنید یا یک پیام کوتاه (مثل «سلام») بفرستید.</div>' +
-            '<div style="padding:11px 14px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line-soft)"><b>گام ۳ (شناسایی و تست زنده):</b> روی دکمه <b>«شناسایی خودکار شناسه چت مالک از روبیکا»</b> کلیک کنید تا شناسه چت شما (مانند <code dir="ltr">u0...</code> یا <code dir="ltr">b0...</code>) خودکار درج شود؛ سپس دکمه طلایی <b>«ذخیره و ارسال عکس + سفارش آزمایشی به روبیکا»</b> را بزنید!</div>' +
+            '<div style="padding:12px 15px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line-soft)"><b>گام ۱ — وارد کردن توکن ربات:</b> در روبیکا وارد <b dir="ltr">@BotFather</b> شوید، با دستور <code dir="ltr">/newbot</code> یک ربات بسازید و فقط <b>توکن (Token)</b> دریافتی را در کادر زیر قرار داده و دکمه طلایی <b>«اتصال هوشمند با توکن (بدون نیاز به شناسه چت)»</b> را بزنید.</div>' +
+            '<div style="padding:12px 15px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line-soft)"><b>گام ۲ — ارسال یک پیام «سلام» به ربات در روبیکا:</b> وارد ربات خودتان در روبیکا شوید و دکمه <b>شروع</b> یا پیام <b>«سلام»</b> بفرستید. ربات <b>به‌صورت خودکار</b> شناسه چت روش جدید روبیکا (<code dir="ltr">b0...</code>) را جذب و ذخیره می‌کند و پیام تأیید + عکس آزمایشی مبل را همان لحظه در روبیکا برایتان می‌فرستد! (ضمناً هر زمان به ربات خود پیام <code dir="ltr">/id</code> یا <b>شناسه</b> بدهید، کد چت را هم به شما نمایش می‌دهد).</div>' +
           '</div>' +
         '</div>' +
 
         '<div class="card">' +
-          '<div class="card__head"><div><h3>پیکربندی امن ربات روبیکا در سرور ابری</h3><p>توکن ربات در جدول محافظت‌شده دیتابیس نگهداری شده و هرگز در کدهای عمومی سایت فاش نمی‌شود</p></div></div>' +
+          '<div class="card__head"><div><h3>تنظیمات اتصال ربات پیام‌رسان روبیکا</h3><p>توکن در سرور ابری رمزنگاری و محافظت می‌شود</p></div></div>' +
           '<div class="card__body"><div class="formgrid">' +
             '<div class="f full">' +
               '<div style="display:flex;gap:22px;flex-wrap:wrap;padding:12px 16px;border-radius:12px;background:var(--surface-2);border:1px solid var(--line-soft)">' +
@@ -3181,39 +3250,53 @@ window.PERANS_DATA = {
               '</div>' +
             '</div>' +
 
-            fieldHTML(
-              'توکن ربات روبیکا (Bot Token دریافتی از @BotFather در روبیکا) *',
-              '<input id="rubikaToken" dir="ltr" autocomplete="off" placeholder="' + (BS.has_token ? ('ذخیره شده: ' + esc(BS.masked_token) + ' — برای تغییر، توکن جدید وارد کنید') : 'توکن ۶۴ کاراکتری دریافتی از @BotFather روبیکا را اینجا قرار دهید…') + '">' +
+            '<div class="f full">' +
+              '<label><span>۱. توکن ربات روبیکا (Bot Token دریافتی از @BotFather) *</span></label>' +
+              '<div style="display:flex;gap:10px;flex-wrap:wrap">' +
+                '<input id="rubikaToken" dir="ltr" style="flex:1;min-width:260px" autocomplete="off" placeholder="' + (BS.has_token ? ('توکن ذخیره شده: ' + esc(BS.masked_token) + ' — فقط در صورت تغییر توکن جدید وارد کنید') : 'توکن دریافتی از @BotFather روبیکا را اینجا قرار دهید…') + '">' +
+                '<button type="button" class="btn btn--gold" data-act="rubika-detect-chat" id="rubikaDetectBtn">' + ICO('send') + ' اتصال هوشمند با توکن (بدون نیاز به شناسه چت)</button>' +
+              '</div>' +
               (BS.has_token
-                ? '<small style="color:var(--green)">✓ توکن ربات در سرور ذخیره شده است (' + esc(BS.masked_token) + '). اگر قصد تغییر توکن را ندارید این کادر را خالی بگذارید.</small>'
-                : '<small>توکن دریافتی از @BotFather در پیام‌رسان روبیکا را دقیقاً بدون فاصله اضافی اینجا جای‌گذاری کنید.</small>'),
-              'full'
-            ) +
+                ? '<small style="color:var(--green)">✓ توکن ربات در سرور ذخیره شده است (' + esc(BS.masked_token) + ')' + (BS.rubika_bot_username ? ' · ربات: <b dir="ltr">@' + esc(BS.rubika_bot_username) + '</b>' : '') + '</small>'
+                : '<small>فقط توکن را وارد کرده و دکمه طلایی روبرو را بزنید؛ نیازی به پر کردن دستی شناسه چت نیست.</small>') +
+            '</div>' +
 
             '<div class="f full">' +
-              '<label><span>شناسه چت یا گروه مالک در روبیکا (Chat ID) *</span></label>' +
+              '<label><span>۲. شناسه چت مالک در روبیکا (به‌صورت خودکار پس از پیام شما به ربات پر می‌شود — اختیاری)</span></label>' +
               '<div style="display:flex;gap:10px;flex-wrap:wrap">' +
-                '<input id="rubikaChatId" dir="ltr" style="flex:1;min-width:220px" value="' + esc(BS.rubika_chat_id || '') + '" placeholder="مثلاً u0ABC123... یا b0XYZ... (با دکمه روبرو خودکار شناسایی کنید)">' +
-                '<button type="button" class="btn btn--dark" data-act="rubika-detect-chat" id="rubikaDetectBtn">' + ICO('search') + ' شناسایی خودکار شناسه چت مالک از روبیکا</button>' +
+                '<input id="rubikaChatId" dir="ltr" style="flex:1;min-width:220px" value="' + esc(BS.rubika_chat_id || '') + '" placeholder="خالی بگذارید! به محض ارسال «سلام» به ربات در روبیکا خودکار پر می‌شود…">' +
+                (BS.has_token
+                  ? '<button type="button" class="btn btn--ghost" data-act="rubika-rebind" title="تغییر گیرنده به اکانت یا گروه دیگر">جفت‌سازی مجدد با اکانت/گروه دیگر</button>'
+                  : '') +
               '</div>' +
-              '<small>شناسه چت روبیکا ترکیبی از حروف و اعداد است (مانند <code dir="ltr">u0...</code> یا <code dir="ltr">b0...</code>). کافی است یک بار در روبیکا به ربات پیام دهید و دکمه بالا را بزنید.</small>' +
-              '<div id="rubikaDetectedChats" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"></div>' +
+              '<small>در روش جدید روبیکا هر ربات شناسه چت اختصاصی خود (<code dir="ltr">b0...</code>) را دارد که با اولین پیام شما به ربات خودکار اینجا درج می‌شود.</small>' +
+              (recentChats.length
+                ? '<div style="margin-top:10px"><div class="muted" style="font-size:11.5px;margin-bottom:6px">گفتگوهای شناسایی‌شده در ربات (با یک کلیک انتخاب کنید):</div>' +
+                    '<div id="rubikaDetectedChats" style="display:flex;gap:8px;flex-wrap:wrap">' +
+                      recentChats.map((ch) => {
+                        const active = BS.rubika_chat_id && BS.rubika_chat_id === ch.chat_id;
+                        return '<button type="button" class="btn ' + (active ? 'btn--dark' : 'btn--ghost') + ' btn--sm" data-act="rubika-pick-chat" data-chat-id="' + esc(ch.chat_id) + '">' +
+                          (active ? '✓ ' : '') + esc(ch.title || 'کاربر روبیکا') + ' · ' + esc(ch.type || 'چت') + ' (<span dir="ltr">' + esc(ch.chat_id) + '</span>)' +
+                        '</button>';
+                      }).join('') +
+                    '</div></div>'
+                : '<div id="rubikaDetectedChats" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"></div>') +
             '</div>' +
 
             fieldHTML('آدرس عمومی وب‌سایت (برای دریافت تصاویر نمایشگاه)', '<input id="rubikaSiteUrl" dir="ltr" value="' + esc(BS.site_base_url || 'https://miimdev.github.io/PERANS') + '">') +
-            fieldHTML('آدرس سرور API روبیکا (پیش‌فرض رسمی v3)', '<input id="rubikaApiBase" dir="ltr" value="' + esc(BS.rubika_api_base || 'https://botapi.rubika.ir/v3') + '" placeholder="https://botapi.rubika.ir/v3">') +
+            fieldHTML('آدرس سرور API روبیکا (پیش‌فرض رسمی v3 + پشتیبان خودکار)', '<input id="rubikaApiBase" dir="ltr" value="' + esc(BS.rubika_api_base || 'https://botapi.rubika.ir/v3') + '" placeholder="https://botapi.rubika.ir/v3">') +
 
             (BS.last_test_at || BS.last_error
               ? '<div class="f full"><div style="padding:11px 14px;border-radius:12px;background:var(--surface-2);font-size:12px">' +
-                  (BS.last_test_at ? '<div style="color:var(--green)">✓ آخرین تست موفق ارسال به روبیکا: ' + esc(faDate(BS.last_test_at, true)) + '</div>' : '') +
+                  (BS.last_test_at ? '<div style="color:var(--green)">✓ آخرین اتصال / تست موفق ارسال به روبیکا: ' + esc(faDate(BS.last_test_at, true)) + '</div>' : '') +
                   (BS.last_error ? '<div style="color:var(--red);margin-top:4px">⚠ آخرین خطای ثبت‌شده: ' + esc(BS.last_error) + '</div>' : '') +
                 '</div></div>'
               : '') +
           '</div>' +
 
           '<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:18px">' +
-            '<button class="btn btn--gold" data-act="rubika-test" id="rubikaTestBtn">' + ICO('send') + ' ذخیره و ارسال عکس + سفارش آزمایشی به روبیکا</button>' +
-            '<button class="btn btn--ghost" data-act="rubika-save" id="rubikaSaveBtn">' + ICO('save') + ' فقط ذخیره تنظیمات</button>' +
+            '<button class="btn btn--dark" data-act="rubika-test" id="rubikaTestBtn">' + ICO('send') + ' ذخیره و ارسال عکس + سفارش آزمایشی به روبیکا</button>' +
+            '<button class="btn btn--ghost" data-act="rubika-save" id="rubikaSaveBtn">' + ICO('save') + ' ذخیره تنظیمات</button>' +
           '</div>' +
           '</div>' +
         '</div>' +
@@ -3589,9 +3672,9 @@ window.PERANS_DATA = {
         try {
           const res = await DB.pingRubika(apiBase);
           if (res && res.reachable) {
-            toast('ارتباط سرور ابری با سرور API روبیکا برقرار و آماده است (HTTP ' + (res.http_status || 200) + ')');
+            toast('ارتباط سرور ابری با سرور API روبیکا کاملاً برقرار و آماده است');
           } else {
-            toast('عدم پاسخ از آدرس سرور روبیکا: ' + ((res && res.error) || 'خطای شبکه'), 'err');
+            toast('عدم پاسخ از آدرس سرور روبیکا', 'err');
           }
         } catch (err) {
           toast(err.message || 'خطا در بررسی اتصال روبیکا', 'err');
@@ -3603,42 +3686,67 @@ window.PERANS_DATA = {
       }
 
       case 'rubika-pick-chat': {
+        const picked = (btn.dataset.chatId || '').trim();
         const inp = $('#rubikaChatId');
-        if (inp) inp.value = btn.dataset.chatId || '';
-        toast('شناسه چت روبیکا (' + (btn.dataset.chatId || '') + ') انتخاب شد');
+        if (inp) inp.value = picked;
+        if (picked) {
+          try {
+            await DB.saveBotSettings(SESSION_TOKEN, {
+              rubika_enabled: !!(($('#rubikaEnabled') && $('#rubikaEnabled').checked)),
+              notify_on_order: !!(($('#rubikaOnOrder') && $('#rubikaOnOrder').checked)),
+              notify_on_message: !!(($('#rubikaOnMsg') && $('#rubikaOnMsg').checked)),
+              rubika_chat_id: picked,
+              site_base_url: ($('#rubikaSiteUrl') && $('#rubikaSiteUrl').value.trim()) || 'https://miimdev.github.io/PERANS',
+              rubika_api_base: ($('#rubikaApiBase') && $('#rubikaApiBase').value.trim()) || 'https://botapi.rubika.ir/v3'
+            });
+            await refreshFromCloud(true);
+            toast('شناسه چت (' + picked + ') انتخاب و ذخیره شد');
+          } catch (err) {
+            toast(err.message || 'خطا در ذخیره شناسه چت', 'err');
+          }
+        }
         break;
       }
 
+      case 'rubika-check-now': {
+        btn.disabled = true;
+        btn.textContent = 'در حال بررسی…';
+        try {
+          await refreshFromCloud(true);
+          if (STATE.bot_settings && STATE.bot_settings.rubika_chat_id) {
+            toast('متصل شد! شناسه چت شما (' + STATE.bot_settings.rubika_chat_id + ') ثبت گردید.');
+          } else {
+            toast('هنوز پیامی از شما در ربات دریافت نشده؛ وارد ربات در روبیکا شوید و «سلام» بفرستید.', 'err');
+          }
+        } finally {
+          btn.disabled = false;
+          btn.textContent = 'بررسی فوری اتصال';
+        }
+        break;
+      }
+
+      case 'rubika-rebind':
       case 'rubika-detect-chat': {
+        const forcePairing = act === 'rubika-rebind';
         const tok = ($('#rubikaToken') && $('#rubikaToken').value.trim()) || '';
         const apiBase = ($('#rubikaApiBase') && $('#rubikaApiBase').value.trim()) || 'https://botapi.rubika.ir/v3';
         btn.disabled = true;
-        btn.textContent = 'در حال استعلام از سرور روبیکا…';
+        const origHtml = btn.innerHTML;
+        btn.textContent = 'در حال اتصال به ربات و نصب وب‌هوک خودکار…';
         try {
-          const res = await DB.detectRubikaChat(SESSION_TOKEN, tok, apiBase);
-          const box = $('#rubikaDetectedChats');
-          if (res.chats && res.chats.length) {
-            if ($('#rubikaChatId') && !$('#rubikaChatId').value.trim()) {
-              $('#rubikaChatId').value = res.chats[0].chat_id;
-            }
-            if (box) {
-              box.innerHTML = res.chats.map((ch) =>
-                '<button type="button" class="btn btn--ghost btn--sm" data-act="rubika-pick-chat" data-chat-id="' + esc(ch.chat_id) + '">' +
-                  esc(ch.title || 'کاربر روبیکا') + ' · ' + esc(ch.type || 'چت') + ' (<span dir="ltr">' + esc(ch.chat_id) + '</span>)' +
-                '</button>'
-              ).join('');
-            }
-            await refreshFromCloud(true);
-            toast('ربات «' + ((res.bot && (res.bot.name || res.bot.username)) || 'روبیکا') + '» تأیید و شناسه چت مالک شناسایی شد!');
+          const res = await DB.detectRubikaChat(SESSION_TOKEN, tok, apiBase, forcePairing);
+          await refreshFromCloud(true);
+          if (res.detected_chat_id) {
+            toast('عالی! ربات «' + ((res.bot && (res.bot.name || res.bot.username)) || 'روبیکا') + '» و شناسه چت شما خودکار متصل شد!');
           } else {
-            await refreshFromCloud(true);
-            toast('توکن ربات تأیید شد، اما هنوز پیامی در روبیکا به ربات ارسال نشده است. وارد ربات شوید و /start بزنید، سپس دوباره کلیک کنید.', 'err');
+            startRubikaLiveRadar();
+            toast('توکن تأیید شد! حالا وارد ربات خود در روبیکا شوید و فقط کلمه «سلام» را بفرستید تا خودکار متصل شود.');
           }
         } catch (err) {
           toast(err.message || 'خطا در اتصال به ربات روبیکا', 'err');
         } finally {
           btn.disabled = false;
-          btn.innerHTML = ICO('search') + ' شناسایی خودکار شناسه چت مالک از روبیکا';
+          btn.innerHTML = origHtml;
         }
         break;
       }
@@ -3646,23 +3754,37 @@ window.PERANS_DATA = {
       case 'rubika-save':
       case 'rubika-test': {
         const tok = ($('#rubikaToken') && $('#rubikaToken').value.trim()) || '';
-        const chatId = toEn(($('#rubikaChatId') && $('#rubikaChatId').value.trim()) || '');
+        let chatId = toEn(($('#rubikaChatId') && $('#rubikaChatId').value.trim()) || '');
         const siteUrl = ($('#rubikaSiteUrl') && $('#rubikaSiteUrl').value.trim()) || 'https://miimdev.github.io/PERANS';
         const apiBase = ($('#rubikaApiBase') && $('#rubikaApiBase').value.trim()) || 'https://botapi.rubika.ir/v3';
-        const payload = {
-          rubika_enabled: !!(($('#rubikaEnabled') && $('#rubikaEnabled').checked)),
-          notify_on_order: !!(($('#rubikaOnOrder') && $('#rubikaOnOrder').checked)),
-          notify_on_message: !!(($('#rubikaOnMsg') && $('#rubikaOnMsg').checked)),
-          rubika_chat_id: chatId,
-          site_base_url: siteUrl,
-          rubika_api_base: apiBase
-        };
-        if (tok) payload.rubika_bot_token = tok;
 
         btn.disabled = true;
         const origHtml = btn.innerHTML;
-        btn.textContent = act === 'rubika-test' ? 'در حال بارگذاری عکس و ارسال تست به روبیکا…' : 'در حال ذخیره…';
+        btn.textContent = act === 'rubika-test' ? 'در حال اتصال هوشمند و ارسال تست به روبیکا…' : 'در حال ذخیره…';
         try {
+          if (!chatId && (tok || (STATE.bot_settings && STATE.bot_settings.has_token))) {
+            const det = await DB.detectRubikaChat(SESSION_TOKEN, tok, apiBase, false);
+            if (det && det.detected_chat_id) {
+              chatId = det.detected_chat_id;
+              if ($('#rubikaChatId')) $('#rubikaChatId').value = chatId;
+            } else {
+              await refreshFromCloud(true);
+              startRubikaLiveRadar();
+              toast('توکن ذخیره و رادار فعال شد! همین حالا در روبیکا به ربات خود پیام «سلام» بدهید تا خودکار متصل و تست شود.');
+              break;
+            }
+          }
+
+          const payload = {
+            rubika_enabled: !!(($('#rubikaEnabled') && $('#rubikaEnabled').checked)),
+            notify_on_order: !!(($('#rubikaOnOrder') && $('#rubikaOnOrder').checked)),
+            notify_on_message: !!(($('#rubikaOnMsg') && $('#rubikaOnMsg').checked)),
+            rubika_chat_id: chatId,
+            site_base_url: siteUrl,
+            rubika_api_base: apiBase
+          };
+          if (tok) payload.rubika_bot_token = tok;
+
           await DB.saveBotSettings(SESSION_TOKEN, payload);
           if (act === 'rubika-test') {
             await DB.testRubikaBot(SESSION_TOKEN, tok, chatId, apiBase);
