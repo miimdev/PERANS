@@ -1,5 +1,5 @@
 /* ==========================================================================
-   PERANS — Supabase Cloud Client & Bale Bot Bridge (Zero external CDN)
+   PERANS — Supabase Cloud Client & Rubika Bot v3 Bridge (Zero external CDN)
    Project: ideh-pardazan (jmpwryddrxmuwzmbmhsb) · Isolated perans_* namespace
    ========================================================================== */
 (function () {
@@ -73,7 +73,7 @@
     }
   }
 
-  async function edge(slug, payload = {}, timeoutMs = 18000, keepalive = false) {
+  async function edge(slug, payload = {}, timeoutMs = 22000, keepalive = false) {
     const ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
     const timer = ctrl ? setTimeout(() => ctrl.abort(), timeoutMs) : null;
 
@@ -98,13 +98,13 @@
       }
 
       if (!res.ok || (data && data.ok === false)) {
-        const msg = (data && (data.error || data.message)) || ('خطای سرویس اعلان (' + res.status + ')');
+        const msg = (data && (data.error || data.message)) || ('خطای سرویس پیام‌رسان روبیکا (' + res.status + ')');
         throw new Error(msg);
       }
       return data;
     } catch (err) {
       if (err && err.name === 'AbortError') {
-        throw new Error('مهلت ارتباط با سرویس پیام‌رسان به پایان رسید.');
+        throw new Error('مهلت ارتباط با سرویس ربات روبیکا به پایان رسید.');
       }
       throw err;
     } finally {
@@ -175,11 +175,11 @@
     submitOrder: async (payload) => {
       const res = await rpc('perans_submit_order', { p_payload: payload });
       if (res && res.id && res.order_code) {
-        edge('perans-bale-notify', {
+        edge('perans-rubika-notify', {
           action: 'notify_order',
           order_id: res.id,
           order_code: res.order_code
-        }, 16000, true).catch(() => {});
+        }, 25000, true).catch(() => {});
       }
       return res;
     },
@@ -187,10 +187,10 @@
     submitMessage: async (payload) => {
       const res = await rpc('perans_submit_message', { p_payload: payload });
       if (res && res.id && payload && payload.kind !== 'newsletter') {
-        edge('perans-bale-notify', {
+        edge('perans-rubika-notify', {
           action: 'notify_message',
           message_id: res.id
-        }, 12000, true).catch(() => {});
+        }, 15000, true).catch(() => {});
       }
       return res;
     },
@@ -210,22 +210,28 @@
     saveCategories: (token, categories) => rpc('perans_admin_save_categories', { p_token: token, p_categories: categories }),
     saveConfig: (token, payload) => rpc('perans_admin_save_config', { p_token: token, p_payload: payload }),
     saveBotSettings: (token, payload) => rpc('perans_admin_save_bot_settings', { p_token: token, p_payload: payload }),
-    detectBaleChat: (token, botToken) => edge('perans-bale-notify', {
+    pingRubika: (apiBase) => edge('perans-rubika-notify', {
+      action: 'ping_rubika',
+      api_base: apiBase || ''
+    }, 15000),
+    detectRubikaChat: (token, botToken, apiBase) => edge('perans-rubika-notify', {
       action: 'detect_chat',
       admin_token: token,
-      bot_token: botToken || ''
-    }, 18000),
-    testBaleBot: (token, botToken, chatId) => edge('perans-bale-notify', {
+      bot_token: botToken || '',
+      api_base: apiBase || ''
+    }, 24000),
+    testRubikaBot: (token, botToken, chatId, apiBase) => edge('perans-rubika-notify', {
       action: 'test_send',
       admin_token: token,
       bot_token: botToken || '',
-      chat_id: chatId || ''
-    }, 20000),
-    resendOrderToBale: (token, orderId) => edge('perans-bale-notify', {
+      chat_id: chatId || '',
+      api_base: apiBase || ''
+    }, 28000),
+    resendOrderToRubika: (token, orderId) => edge('perans-rubika-notify', {
       action: 'resend_order',
       admin_token: token,
       order_id: orderId
-    }, 22000),
+    }, 30000),
     updateOrder: (token, id, status, adminNote) => rpc('perans_admin_update_order', { p_token: token, p_id: id, p_status: status, p_admin_note: adminNote }),
     createOrder: (token, order) => rpc('perans_admin_create_order', { p_token: token, p_order: order }),
     deleteOrder: (token, id) => rpc('perans_admin_delete_order', { p_token: token, p_id: id }),
