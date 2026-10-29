@@ -40,8 +40,20 @@ jobs:
           touch _site/.nojekyll
 
       - name: Setup GitHub Pages
+        id: pages
         if: github.event_name != 'pull_request'
         uses: actions/configure-pages@v6
+
+      - name: Guide if GitHub Pages is not enabled yet
+        if: failure() && steps.pages.outcome == 'failure'
+        run: |
+          cat << 'EOF' >> "$GITHUB_STEP_SUMMARY"
+          ## ⚠️ نیاز به فعال‌سازی اولیه GitHub Pages
+          برای آنلاین شدن سایت از طریق GitHub Actions، یک بار این تنظیم را انجام دهید:
+          1. وارد بخش تنظیمات Pages مخزن شوید: `https://github.com/${{ github.repository }}/settings/pages`
+          2. در قسمت **Build and deployment**، مقدار **Source** را روی **GitHub Actions** بگذارید.
+          3. در تب **Actions** روی **Re-run all jobs** یا **Run workflow** کلیک کنید.
+          EOF
 
       - name: Upload GitHub Pages artifact
         if: github.event_name != 'pull_request'
@@ -61,3 +73,11 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+
+      - name: Write deployment summary
+        run: |
+          cat << EOF >> "$GITHUB_STEP_SUMMARY"
+          ## ✅ سایت مبل پرنس آنلاین شد!
+          - 🌐 **آدرس اصلی سایت:** ${{ steps.deployment.outputs.page_url }}
+          - 🔐 **پنل مدیریت:** ${{ steps.deployment.outputs.page_url }}admin/
+          EOF
